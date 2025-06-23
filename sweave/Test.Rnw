@@ -1,0 +1,70 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<>>=
+# Script:       Step1_DataExploration.R
+# Description:  In this script, we will explore the differential gene 
+#               expression dataset comparing lung cancer vs. healthy tissue
+#               samples. The RNA-sequencing dataset was retrieved from 
+#               TCGA (The Cancer Genome Atlas) and pre-processed in R. 
+#               Differential gene expression analysis was performed with the 
+#               DESeq2 R-package. 
+# Version: 2.0
+# Last updated: 2025-06-08
+# Author: mkutmon
+
+# #############################################
+# R INSTRUCTIONS
+# #############################################
+
+# * Lines that start with a # are comments
+# * You can run a code line by placing the cursor in the line and clicking 
+#   CTRL/Command + Enter
+# * In between you will see the ??? Questions which refers to a question 
+#   in the question document provided on Canvas.
+
+
+# #############################################
+# R SETUP
+# #############################################
+
+# Here we install and load all required packages. 
+# This might take a few minutes
+if (!("BiocManager" %in% installed.packages())) { install.packages("BiocManager", update=FALSE) }
+if (!("rstudioapi" %in% installed.packages())) { BiocManager::install("rstudioapi", update=FALSE) }
+if (!("org.Hs.eg.db" %in% installed.packages())) { BiocManager::install("org.Hs.eg.db", update=FALSE) }
+if (!("dplyr" %in% installed.packages())) { BiocManager::install("dplyr", update=FALSE) }
+if (!("EnhancedVolcano" %in% installed.packages())) { BiocManager::install("EnhancedVolcano", update=FALSE) }
+if (!("readxl" %in% installed.packages())) { BiocManager::install("readxl", update=FALSE) }
+if (!("clusterProfiler" %in% installed.packages())) { BiocManager::install("clusterProfiler", update=FALSE) }
+if (!("enrichplot" %in% installed.packages())) { BiocManager::install("enrichplot", update=FALSE) }
+if (!("Rgraphviz" %in% installed.packages())) { BiocManager::install("Rgraphviz", update=FALSE) }
+if (!("RCy3" %in% installed.packages())) { BiocManager::install("RCy3", update=FALSE) }
+if (!("msigdbr" %in% installed.packages())) { BiocManager::install("msigdbr",update=FALSE) }
+if (!("RColorBrewer" %in% installed.packages())) { BiocManager::install("RColorBrewer",update=FALSE) }
+if (!("readr" %in% installed.packages())) { BiocManager::install("readr",update=FALSE) }
+if (!("rWikiPathways" %in% installed.packages())) { BiocManager::install("rWikiPathways",update=FALSE) }
+
+library(rstudioapi)
+library(org.Hs.eg.db)
+library(dplyr)
+library(EnhancedVolcano)
+library(readxl)
+library(clusterProfiler)
+library(enrichplot)
+library(Rgraphviz)
+library(RCy3)
+library(msigdbr)
+library(RColorBrewer)
+library(readr)
+library(rWikiPathways)
+
+# We will set the working directory to the location where the current 
+# script is located. This way, we can use relative file path locations. 
+@
+
+
+
+\end{document}
