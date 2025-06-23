@@ -47,7 +47,7 @@ RCy3::setNodeLabelMapping("display name", style.name = "centrality")
 setNodeColorMapping(table.column = "__glayCluster", table.column.values = large_clusters, mapping.type = "d", colors = colors, style.name = "clustering", default.color = "#D9D9D9")
 RCy3::setVisualStyle("clustering")
 toggleGraphicsDetails()
-exportImage(paste0(out.folder,'clustered-network.png'), type='PNG', zoom=500) #.png; use zoom or width args to increase size/resolution
+exportImage(paste0(out.folder,'clustered-network.png'), type='PNG', zoom=0, width=4096) #.png; use zoom or width args to increase size/resolution
 
 # ==================================================================
 # Function of up-regulated cluster
