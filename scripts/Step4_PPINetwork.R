@@ -21,6 +21,8 @@
 # make sure Cytoscape is running
 RCy3::cytoscapePing()
 
+library(ggplot2)
+
 # Check if WikiPathways app is installed
 if(!"name: stringApp, version: 2.2.0, status: Installed" %in% RCy3::getInstalledApps()) {
   RCy3::installApp("stringApp")
@@ -43,7 +45,6 @@ hist(RCy3::getTableColumns(columns = "Degree")$Degree, breaks=100, main = "PPI D
 
 filename <- paste0(out.folder,"PPI-degree-distribution.png")
 png(filename , width = 500, height = 1200, res = 150)
-hist(RCy3::getTableColumns(columns = "Degree")$Degree, breaks=30, main = "PPI Degree distribution", xlab = "Degree")
 dev.off()
 
 # ??? Question 11 - answer in document
