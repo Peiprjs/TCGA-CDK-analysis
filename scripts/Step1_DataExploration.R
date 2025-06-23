@@ -54,15 +54,16 @@ library(msigdbr)
 library(RColorBrewer)
 library(readr)
 library(rWikiPathways)
+library(stringr)
 
 # We will set the working directory to the location where the current 
 # script is located. This way, we can use relative file path locations. 
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+setwd(dirname(str_replace(rstudioapi::getActiveDocumentContext()$path, "Step1_DataExploration.R", "")
+))
 
 # We will create an output folder where all figures and files will be stored
 out.folder <- "output/"
 dir.create(out.folder)
-
 
 # #############################################
 # IMPORT DATA
