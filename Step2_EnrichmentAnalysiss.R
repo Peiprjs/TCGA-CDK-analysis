@@ -40,7 +40,10 @@ write.table(res.go.up.df, file=paste0(out.folder,"go-up.txt"), sep="\t", row.nam
 # CODING TASK - CHECK LINE 27 and COPY TO LINE 43 AND ADAPT FOR 
 # DOWN-REGULATED GENES
 #####################################################################
-res.go.down <- 
+res.go.down <- clusterProfiler::enrichGO(genes.down$GeneID, OrgDb = "org.Hs.eg.db", 
+                                       keyType="ENSEMBL", universe=data$GeneID, ont = "BP", 
+                                       pAdjustMethod = "BH", qvalueCutoff = 0.05, 
+                                       minGSSize = 20, maxGSSize = 400)
 res.go.down.df <- as.data.frame(res.go.down)
 write.table(res.go.down.df, file=paste0(out.folder,"go-down.txt"), sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 

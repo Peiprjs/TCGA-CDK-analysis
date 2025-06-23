@@ -63,7 +63,7 @@ RCy3::setVisualStyle("log2FC vis")
 ####################################################
 # CODING TASK - ADD CLUSTER NUMBER INSTEAD OF ...
 ####################################################
-cluster <- ...
+cluster <- 1255
 nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', cluster, predicate = "IS")
 RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = "shared name", subnetwork.name = paste0("PPI-cluster-", cluster))
 exportImage(paste0(out.folder,'cluster-',cluster,'.png'), type='PNG', zoom=500) #.png; use zoom or width args to increase size/resolution

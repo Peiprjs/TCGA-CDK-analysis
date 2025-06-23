@@ -69,7 +69,7 @@ dir.create(out.folder)
 # #############################################
 
 # Next we will import the dataset
-data <- read_excel("data/lung-cancer-data.xlsx")
+data <- read_excel("data/data-breast-cancer.xlsx")
 
 # ??? Question 1 - answer in document
 
@@ -96,8 +96,15 @@ write.table(degs, file=paste0(out.folder,"degs.tsv"), row.names = FALSE, sep="\t
 #####################################################################
 # CODING TASK - REPLACE ... WITH ADAPTED CODE BASED ON LINE 85
 #####################################################################
-genes.up <- ...
-genes.down <- ...
+
+log2fc.cutoff <- -1
+genes.down <- data[data$log2FC < log2fc.cutoff & data$adj.P.Value < pvalue.cutoff,]
+write.table(degs, file=paste0(out.folder,"degs_down.tsv"), row.names = FALSE, sep="\t", quote = FALSE)
+
+log2fc.cutoff <- 1
+genes.up <- data[data$log2FC > log2fc.cutoff & data$adj.P.Value < pvalue.cutoff,]
+write.table(degs, file=paste0(out.folder,"degs_up.tsv"), row.names = FALSE, sep="\t", quote = FALSE)
+
 
 # ??? Question 3 - answer in document
 
@@ -108,12 +115,12 @@ genes.down <- ...
 # Let's create a Volcano plot to get a better understand of the intensity and
 # direction of the changed genes
 
-EnhancedVolcano(data, title = paste0("Lung cancer vs. Healthy (",nrow(degs), " DEGs)"), lab = data$GeneName, x = "log2FC", y = "adj.P.Value", pCutoff = pvalue.cutoff, FCcutoff = log2fc.cutoff, labSize = 3, xlim = c(-15,15), ylim=c(0,4))
+EnhancedVolcano(data, title = paste0("Breast cancer vs. Healthy (",nrow(degs), " DEGs)"), lab = data$GeneName, x = "log2FC", y = "adj.P.Value", pCutoff = pvalue.cutoff, FCcutoff = log2fc.cutoff, labSize = 3, xlim = c(-15,15), ylim=c(0,4))
 
 # the code below saves the figure in a file in our output folder
 filename <- paste0(out.folder,"volcano-plot.png")
 png(filename , width = 2000, height = 1500, res = 150)
-EnhancedVolcano(data, title = paste0("Lung cancer vs. Healthy (",nrow(degs), " DEGs)"), lab = data$GeneName, x = "log2FC", y = "adj.P.Value", pCutoff = pvalue.cutoff, FCcutoff = log2fc.cutoff, labSize = 3, xlim = c(-15,15), ylim=c(0,4))
+EnhancedVolcano(data, title = paste0("Breast cancer vs. Healthy (",nrow(degs), " DEGs)"), lab = data$GeneName, x = "log2FC", y = "adj.P.Value", pCutoff = pvalue.cutoff, FCcutoff = log2fc.cutoff, labSize = 3, xlim = c(-15,15), ylim=c(0,4))
 dev.off()
 
 # ??? Question 4 - answer in document

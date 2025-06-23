@@ -38,10 +38,21 @@ if(!"name: WikiPathways, version: 3.3.10, status: Installed" %in% RCy3::getInsta
 # Make sure you select the ID of the human pathway
 # Example: Cell cycle pathway
 
+# Possible pathways of interest:
+# WP179 - Cell Cycle
+# WP5497 - Cyclin-dependent kinase 4/6 inhibitors in breast cancer
+# WP5213 - Amino acid metabolism in triple-negative breast cancer cells
+# WP4262 - Breast cancer pathway
+# WP5211 - Glucose metabolism in triple-negative breast cancer cells
+# WP1984 - Integrated breast cancer pathway
+# WP5215 - Targeted agents in triple negative breast cancer
+# WP5496 - Targeted therapy in breast cancer
+# WP5353 - Macrophage-stimulating protein (MSP) signaling
+
 #####################################################################
 # CODING TASK - CHANGE PATHWAY ID TO PATHWAY OF INTEREST
 #####################################################################
-pw.id <- "WP179"
+pw.id <- "WP5497"
 RCy3::commandsRun(paste0('wikipathways import-as-pathway id=',pw.id)) 
 
 toggleGraphicsDetails()
