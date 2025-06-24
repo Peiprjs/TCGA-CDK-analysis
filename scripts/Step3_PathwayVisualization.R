@@ -52,7 +52,7 @@ if(!"name: WikiPathways, version: 3.3.10, status: Installed" %in% RCy3::getInsta
 #####################################################################
 # CODING TASK - CHANGE PATHWAY ID TO PATHWAY OF INTEREST
 #####################################################################
-pw.id <- "WP5497"
+pw.id <- "WP45"
 RCy3::commandsRun(paste0('wikipathways import-as-pathway id=',pw.id)) 
 
 toggleGraphicsDetails()
