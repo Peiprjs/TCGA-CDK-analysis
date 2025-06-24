@@ -44,7 +44,9 @@ RCy3::setVisualStyle("log2FC vis")
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
 
 genes.full <- RCy3::getTableColumns(columns = "GeneName,__glayCluster")
-genes.interest <- genes.full %>% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))                                                                                                     
+genes.interest <- genes.full %>% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
+
+genes.interest
 
 nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")
 
@@ -100,5 +102,5 @@ exportImage(paste0(out.folder,'cluster-interest-with-drugs.svg'), type='SVG', zo
 # SAVING CYTOSCAPE SESSION
 # ==================================================================
 
-saveSession(paste0(out.folder,'lung-cancer-example.cys'))
+saveSession(paste0(out.folder,'breast-cancer-example.cys'))
 
