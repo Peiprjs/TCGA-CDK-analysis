@@ -1,18 +1,7 @@
-# Make sure you run at least step 1 + step 2 before this
-# usually you would also do the pathway visualization step 3
-# before doing the drug extension
-
 # #############################################
 # PATHWAY VISUALIZATION
 # #############################################
-
-# Check if Cytoscape is running
 cytoscapePing()
-
-# Check if WikiPathways app is installed
-if(!"name: WikiPathways, version: 3.3.10, status: Installed" %in% RCy3::getInstalledApps()) {
-  RCy3::installApp("WikiPathways")
-}
 
 # Open Pathway of interest - based on the res.wp.up.df and res.wp.down.df, you can
 # select pathways of interest
@@ -23,7 +12,6 @@ if(!"name: WikiPathways, version: 3.3.10, status: Installed" %in% RCy3::getInsta
 
 # difference to step 3 --> pathway will be imported as a network
 # so all layout information is removed
-pw.id <- "WP5497"
 RCy3::commandsRun(paste0('wikipathways import-as-network id=',pw.id)) 
 
 toggleGraphicsDetails()
@@ -45,12 +33,6 @@ RCy3::clearSelection()
 # Extend the pathway with known drug-target interactions from DrugBank
 # ==================================================================
 
-# Check if CyTargetLinker app is installed
-if(!"name: CyTargetLinker, version: 4.1.0, status: Installed" %in% RCy3::getInstalledApps()) {
-  RCy3::installApp("CyTargetLinker")
-}
-
-
 unzip(system.file("extdata","drugbank-5.1.0.xgmml.zip", package="rWikiPathways"), exdir = getwd())
 drugbank <- file.path(getwd(), "drugbank-5.1.0.xgmml")
 
@@ -71,14 +53,11 @@ mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.
 
 exportImage(paste0(out.folder,'cluster-',cluster,'-with-drugs.png'), type='PNG', zoom=500) #.png; use zoom or width args to increase size/resolution
 
-# ??? Question 16 - answer in document
-
-
 # ==================================================================
 # SAVING CYTOSCAPE SESSION
 # ==================================================================
 
-saveSession(paste0(out.folder,'lung-cancer-example.cys'))
+saveSession(paste0(out.folder,'breast-cancer-example.cys'))
 
 
 
