@@ -1,4 +1,3 @@
-library(dplyr)
 # Make sure you ran the scripts for step 1-4 before this script
 
 # ==================================================================
@@ -6,11 +5,6 @@ library(dplyr)
 # ==================================================================
 # make sure Cytoscape is running
 RCy3::cytoscapePing()
-
-# Check if clusterMaker2 app is installed
-if(!"name: clusterMaker2, version: 2.3.4, status: Installed" %in% RCy3::getInstalledApps()) {
-  RCy3::installApp("clusterMaker2")
-}
 
 # let's use community clustering to find clusters/modules in the network
 commandsRun(paste0('cluster glay createGroups=TRUE'))
@@ -41,8 +35,6 @@ exportImage(paste0(out.folder,'clustered-network.svg'), type='SVG', zoom=500) #.
 
 RCy3::setVisualStyle("log2FC vis")
 
-interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
-
 genes.full <- RCy3::getTableColumns(columns = "GeneName,__glayCluster")
 genes.interest <- genes.full %>% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
 
@@ -69,11 +61,6 @@ res.go.df <- as.data.frame(res.go)
 # ==================================================================
 # Extend the cluster with known drug-target interactions from DrugBank
 # ==================================================================
-
-# Check if CyTargetLinker app is installed
-if(!"name: CyTargetLinker, version: 4.1.0, status: Installed" %in% RCy3::getInstalledApps()) {
-  RCy3::installApp("CyTargetLinker")
-}
 
 unzip(system.file("extdata","drugbank-5.1.0.xgmml.zip", package="rWikiPathways"), exdir = getwd())
 drugbank <- file.path(getwd(), "drugbank-5.1.0.xgmml")

@@ -5,16 +5,9 @@
 #               TCGA (The Cancer Genome Atlas) and pre-processed in R. 
 #               Differential gene expression analysis was performed with the 
 #               DESeq2 R-package. 
-# Version: 2.0
-# Last updated: 2025-06-08
-# Author: mkutmon
-
-# #############################################
-# R INSTRUCTIONS
-# #############################################
-
-# Make sure you ran Step1_DataExploration.R directly before starting this script
-
+# Version: 3.0
+# Last updated: 2025-06-24
+# Author: mkutmon & peiprJS
 
 # #############################################
 # GENE ONTOLOGY ENRICHMENT ANALYSIS
@@ -31,23 +24,12 @@ res.go.up <- clusterProfiler::enrichGO(genes.up$GeneID, OrgDb = "org.Hs.eg.db",
 res.go.up.df <- as.data.frame(res.go.up)
 write.table(res.go.up.df, file=paste0(out.folder,"go-up.txt"), sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 
-# ??? Question 5 - answer in document
-
-# Based on the code above, can you adapt the code to do the enrichment analysis
-# for down-regulated genes?
-
-#####################################################################
-# CODING TASK - CHECK LINE 27 and COPY TO LINE 43 AND ADAPT FOR 
-# DOWN-REGULATED GENES
-#####################################################################
 res.go.down <- clusterProfiler::enrichGO(genes.down$GeneID, OrgDb = "org.Hs.eg.db", 
                                        keyType="ENSEMBL", universe=data$GeneID, ont = "BP", 
                                        pAdjustMethod = "BH", qvalueCutoff = 0.05, 
                                        minGSSize = 20, maxGSSize = 400)
 res.go.down.df <- as.data.frame(res.go.down)
 write.table(res.go.down.df, file=paste0(out.folder,"go-down.txt"), sep="\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
-
-# ??? Question 6 - answer in document
 
 # Both lists are very long and difficult to interpret. Let's see if the 
 # treeplots (discussed in workshop 1) help with the interpretation:
@@ -69,9 +51,6 @@ filename <- paste0(out.folder,"GO_Downregulated_Treeplot.png")
 png(filename , width = 3000, height = 4000, res = 150)
 plot(treeplot(res.go.down.sim, label_format = 0.5, showCategory = 100, cluster.params = list(n = 15, label_words_n = 0)))
 dev.off()
-
-# ??? Question 7 - answer in document
-
 
 # #############################################
 # PATHWAY ENRICHMENT ANALYSIS
@@ -127,8 +106,6 @@ filename <- paste0(out.folder,"WP_Downregulated_Treeplot.png")
 png(filename , width = 3000, height = 2000, res = 150)
 plot(treeplot(res.wp.down.sim, label_format = 0.5, showCategory = 100, cluster.params = list(label_words_n = 0)))
 dev.off()
-
-# ??? Question 8 - answer in document
 
 
 

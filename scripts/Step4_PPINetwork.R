@@ -5,28 +5,14 @@
 #               TCGA (The Cancer Genome Atlas) and pre-processed in R. 
 #               Differential gene expression analysis was performed with the 
 #               DESeq2 R-package. 
-# Version: 2.0
-# Last updated: 2025-06-08
-# Author: mkutmon
-
-# #############################################
-# R INSTRUCTIONS
-# #############################################
-
-# Make sure you ran the scripts for step 1-3 before this script
+# Version: 3.0
+# Last updated: 2025-06-24
+# Author: mkutmon & peiprJS
 
 # ==================================================================
 # PPI network creation with the stringApp for Cytoscape
 # ==================================================================
-# make sure Cytoscape is running
 RCy3::cytoscapePing()
-
-library(ggplot2)
-
-# Check if WikiPathways app is installed
-if(!"name: stringApp, version: 2.2.0, status: Installed" %in% RCy3::getInstalledApps()) {
-  RCy3::installApp("stringApp")
-}
 
 query <- format_csv(as.data.frame(degs$GeneName), col_names=F, escape = "double", eol =",")
 commandsPOST(paste0('string protein query cutoff=0.95 newNetName="PPI network" query="',query,'" limit=0 species="Homo sapiens"'))
