@@ -15,7 +15,7 @@
 RCy3::cytoscapePing()
 
 query <- format_csv(as.data.frame(degs$GeneName), col_names=F, escape = "double", eol =",")
-commandsPOST(paste0('string protein query cutoff=0.95 newNetName="PPI network" query="',query,'" limit=0 species="Homo sapiens"'))
+commandsPOST(paste0('string protein query cutoff=0.99 newNetName="PPI network" query="',query,'" limit=0 species="Homo sapiens"'))
 
 exportImage(paste0(out.folder,'PPI-network.png'), type='PNG', zoom=500) 
 
