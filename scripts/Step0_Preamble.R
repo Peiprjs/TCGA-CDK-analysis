@@ -59,7 +59,7 @@ dir.create(out.folder)
 
 ###############################################################################################################
 
-setwd("~/gits/BBS2061-breast-cancer")
+setwd("~/gits/BBS2061-breast-cancer") # Change this to your project directory
 data <- read_excel("data/data-breast-cancer.xlsx")
 
 ###############################################################################################################
