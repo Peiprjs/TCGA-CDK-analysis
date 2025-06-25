@@ -1,3 +1,5 @@
+if (!("rmarkdown" %in% installed.packages())) { install.packages("rmarkdown", update=FALSE) }
+
 rmarkdown::render("scripts/Step0_Preamble.R")
 rmarkdown::render("scripts/Step1_DataExploration.R")
 rmarkdown::render("scripts/Step2_EnrichmentAnalysiss.R")
