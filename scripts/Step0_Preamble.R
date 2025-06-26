@@ -4,7 +4,6 @@
 # Last updated: 2025-06-08
 # Author: peiprJS
 ###############################################################################################################
-
 if (!("BiocManager" %in% installed.packages())) { install.packages("BiocManager", update=FALSE) }
 if (!("rstudioapi" %in% installed.packages())) { BiocManager::install("rstudioapi", update=FALSE) }
 if (!("org.Hs.eg.db" %in% installed.packages())) { BiocManager::install("org.Hs.eg.db", update=FALSE) }
@@ -50,16 +49,12 @@ if (!"name: CyTargetLinker, version: 4.1.0, status: Installed" %in% RCy3::getIns
 
 ###############################################################################################################
 
-# setwd(dirname(str_replace(rstudioapi::getActiveDocumentContext()$path, "Step0_Preamble.R", "")))
-
-###############################################################################################################
-
-out.folder <- "output/"
+out.folder <- "../output/"
 dir.create(out.folder) 
 
 ###############################################################################################################
 
-setwd("~/gits/BBS2061-breast-cancer") # Change this to your project directory
+#setwd(dirname(str_replace(rstudioapi::getActiveDocumentContext()$path, "Step0_Preamble.R", "")))
 data <- read_excel("data/data-breast-cancer.xlsx")
 
 ###############################################################################################################
@@ -71,6 +66,7 @@ pvalue.cutoff <- 0.05
 
 pw.id <- "WP45" # Pathway of interest
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
+interest_cluster <- 0
 
 # Possible pathways of interest:
 # WP179 - Cell Cycle

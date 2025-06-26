@@ -40,7 +40,10 @@ genes.interest <- genes.full %>% filter_at(vars(GeneName), any_vars(. %in% c(int
 
 genes.interest
 
-nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")
+if (interest_cluster == 0) {
+  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', cluster, predicate = "IS")
+} else {
+  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")}
 
 RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = "shared name", subnetwork.name = paste0("PPI-cluster-Interest"))
 exportImage(paste0(out.folder,'cluster.svg'), type='SVG', zoom=500)
