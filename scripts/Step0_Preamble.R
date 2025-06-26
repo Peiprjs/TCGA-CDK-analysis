@@ -67,6 +67,7 @@ pvalue.cutoff <- 0.05
 ###############################################################################################################
 
 pw.id <- "WP45" # Pathway of interest
+pathways.stepeight <- c("WP_CELL_CYCLE","WP_GASTRIC_CANCER_NETWORK_1","WP_RETINOBLASTOMA_GENE_IN_CANCER")
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
 interest_cluster <- ""
 go.term <- "GO:0002768"

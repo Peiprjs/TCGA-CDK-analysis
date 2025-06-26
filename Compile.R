@@ -9,5 +9,6 @@ rmarkdown::render("scripts/Step4_PPINetwork.R")
 rmarkdown::render("scripts/Step5_IdentifyClusters.R")
 rmarkdown::render("scripts/Step6-NumberDrugsTargetsTable.R")
 rmarkdown::render("scripts/Step7_GO-Process_PPI_DrugExtension.R")
+rmarkdown::render("scripts/Step8_Pathways2PPI_DrugExtension.R")
 
 system("mv scripts/*.html ../BBS2061-breast-cancer-pages")

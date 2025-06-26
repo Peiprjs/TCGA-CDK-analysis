@@ -100,5 +100,5 @@ exportImage(paste0(out.folder,'cluster-interest-with-drugs.svg'), type='SVG', zo
 # SAVING CYTOSCAPE SESSION
 # ==================================================================
 
-saveSession(paste0(out.folder,'breast-cancer-example.cys'))
+#saveSession(paste0(out.folder,'breast-cancer-example.cys'))
 
