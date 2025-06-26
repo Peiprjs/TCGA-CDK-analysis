@@ -1,8 +1,20 @@
+# Script:       Step5_NetworkClustering.R
+# Description:  In this script, we will explore the differential gene 
+#               expression dataset comparing lung cancer vs. healthy tissue
+#               samples. The RNA-sequencing dataset was retrieved from 
+#               TCGA (The Cancer Genome Atlas) and pre-processed in R. 
+#               Differential gene expression analysis was performed with the 
+#               DESeq2 R-package. 
+# Version: 3.0
+# Last updated: 2025-06-26
+# Author: mkutmon & peiprjs
+
 # Make sure you ran the scripts for step 1-4 before this script
 
 # ==================================================================
 # PPI network creation with the stringApp for Cytoscape
 # ==================================================================
+
 # make sure Cytoscape is running
 RCy3::cytoscapePing()
 
@@ -39,11 +51,10 @@ genes.full <- RCy3::getTableColumns(columns = "GeneName,__glayCluster")
 genes.interest <- genes.full %>% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
 
 genes.interest
-
-if (interest_cluster == 0) {
-  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', cluster, predicate = "IS")
+if (interest_cluster == "") {
+  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")
 } else {
-  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")}
+  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', interest_cluster, predicate = "IS")}
 
 RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = "shared name", subnetwork.name = paste0("PPI-cluster-Interest"))
 exportImage(paste0(out.folder,'cluster.svg'), type='SVG', zoom=500)
@@ -84,9 +95,6 @@ mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.
 # Cytoscape > Layout menu!
 
 exportImage(paste0(out.folder,'cluster-interest-with-drugs.svg'), type='SVG', zoom=500) #.png; use zoom or width args to increase size/resolution
-
-# ??? Question 16 - answer in document
-
 
 # ==================================================================
 # SAVING CYTOSCAPE SESSION

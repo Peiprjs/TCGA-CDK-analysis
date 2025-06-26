@@ -49,13 +49,15 @@ if (!"name: CyTargetLinker, version: 4.1.0, status: Installed" %in% RCy3::getIns
 
 ###############################################################################################################
 
+# /!\ Uncomment setwd line if you're running manually
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 out.folder <- "../output/"
 dir.create(out.folder) 
 
 ###############################################################################################################
 
 #setwd(dirname(str_replace(rstudioapi::getActiveDocumentContext()$path, "Step0_Preamble.R", "")))
-data <- read_excel("data/data-breast-cancer.xlsx")
+data <- read_excel("../data/data-breast-cancer.xlsx")
 
 ###############################################################################################################
 
@@ -66,7 +68,8 @@ pvalue.cutoff <- 0.05
 
 pw.id <- "WP45" # Pathway of interest
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
-interest_cluster <- 0
+interest_cluster <- ""
+go.term <- "GO:0002768"
 
 # Possible pathways of interest:
 # WP179 - Cell Cycle
