@@ -21,4 +21,5 @@ RCy3::analyzeNetwork(directed=TRUE)
 res <- getTableColumns(table="node", columns = c("display name", "GeneID", "CTL.Type", "Indegree", "Outdegree"))
 colnames(res) <- c("Name", "ID", "Type", "NumDrugs", "NumTargets")
 
-write.table(res, file="drug-target-info.tsv", quote=FALSE, sep="\t", row.names = FALSE, col.names = TRUE)
+exportImage(paste0(out.folder,'cluster-interest-with-drugs-exceptnointeract.svg'), type='SVG', zoom=500) #.png; use zoom or width args to increase size/resolution
+write.table(res, file=paste0(out.folder,"drug-target-info.tsv"), quote=FALSE, sep="\t", row.names = FALSE, col.names = TRUE)
