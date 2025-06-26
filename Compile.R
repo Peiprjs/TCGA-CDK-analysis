@@ -1,6 +1,7 @@
 if (!("rmarkdown" %in% installed.packages())) { install.packages("rmarkdown", update=FALSE) }
 if (!("knitr" %in% installed.packages())) { install.packages("knit", update=FALSE) }
 
+setwd("~/gits/BBS2061-breast-cancer/")
 rmarkdown::render("scripts/Step0_Preamble.R")
 rmarkdown::render("scripts/Step1_DataExploration.R")
 rmarkdown::render("scripts/Step2_EnrichmentAnalysiss.R")
