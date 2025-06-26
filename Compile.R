@@ -2,7 +2,7 @@ if (!("rmarkdown" %in% installed.packages())) { install.packages("rmarkdown", up
 if (!("knitr" %in% installed.packages())) { install.packages("knit", update=FALSE) }
 
 # opts_knit$set(root.dir = "~/gits/BBS2061-breast-cancer")
-getwd() 
+
 rmarkdown::render("scripts/Step0_Preamble.R")
 rmarkdown::render("scripts/Step1_DataExploration.R")
 rmarkdown::render("scripts/Step2_EnrichmentAnalysiss.R")

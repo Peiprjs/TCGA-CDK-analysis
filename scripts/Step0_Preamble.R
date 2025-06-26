@@ -66,6 +66,7 @@ pvalue.cutoff <- 0.05
 
 pw.id <- "WP45" # Pathway of interest
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
+interest_cluster <- 0
 
 # Possible pathways of interest:
 # WP179 - Cell Cycle
