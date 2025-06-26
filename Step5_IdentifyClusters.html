@@ -357,11 +357,23 @@ display: none;
 </div>
 
 
-<pre class="r"><code># Make sure you ran the scripts for step 1-4 before this script
+<pre class="r"><code># Script:       Step5_NetworkClustering.R
+# Description:  In this script, we will explore the differential gene 
+#               expression dataset comparing lung cancer vs. healthy tissue
+#               samples. The RNA-sequencing dataset was retrieved from 
+#               TCGA (The Cancer Genome Atlas) and pre-processed in R. 
+#               Differential gene expression analysis was performed with the 
+#               DESeq2 R-package. 
+# Version: 3.0
+# Last updated: 2025-06-26
+# Author: mkutmon &amp; peiprjs
+
+# Make sure you ran the scripts for step 1-4 before this script
 
 # ==================================================================
 # PPI network creation with the stringApp for Cytoscape
 # ==================================================================
+
 # make sure Cytoscape is running
 RCy3::cytoscapePing()</code></pre>
 <pre><code>## You are connected to Cytoscape!</code></pre>
@@ -405,17 +417,25 @@ RCy3::setVisualStyle(&quot;log2FC vis&quot;)</code></pre>
 genes.interest &lt;- genes.full %&gt;% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
 
 genes.interest</code></pre>
-<pre><code>##       GeneName __glayCluster
-## 2950    CDKN1C          3283
-## 2968    CDKN2A          3283
-## 11401   CDKN2B          2846
-## 12691   CDKN2C          2416
-## 16141   CDKN2D          1266</code></pre>
-<pre class="r"><code>nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__glayCluster&#39;, unique(genes.interest[,2]), predicate = &quot;IS&quot;)</code></pre>
+<pre><code>##        GeneName __glayCluster
+## 427740   CDKN1C          3283
+## 427758   CDKN2A          3283
+## 436191   CDKN2B          2846
+## 437481   CDKN2C          2416
+## 440931   CDKN2D          1266</code></pre>
+<pre class="r"><code>cluster &lt;- as.integer(interest_cluster)
+nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__glayCluster&#39;, cluster, predicate = &quot;IS&quot;)</code></pre>
 <pre><code>## No edges selected.</code></pre>
-<pre class="r"><code>RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = &quot;shared name&quot;, subnetwork.name = paste0(&quot;PPI-cluster-Interest&quot;))</code></pre>
+<pre class="r"><code># if (interest_cluster == &quot;&quot;) {
+#   nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__glayCluster&#39;, unique(genes.interest[,2]), predicate = &quot;IS&quot;)
+# } else {
+#   cluster &lt;- interest_cluster
+#   nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__glayCluster&#39;, cluster, predicate = &quot;IS&quot;)
+# }
+  
+RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = &quot;shared name&quot;, subnetwork.name = paste0(&quot;PPI-cluster-Interest&quot;))</code></pre>
 <pre><code>## network 
-##  409933</code></pre>
+##  834723</code></pre>
 <pre class="r"><code>exportImage(paste0(out.folder,&#39;cluster.svg&#39;), type=&#39;SVG&#39;, zoom=500)</code></pre>
 <pre><code>##                                                                   file 
 ## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/cluster.svg&quot;</code></pre>
@@ -925,14 +945,11 @@ mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.
 exportImage(paste0(out.folder,&#39;cluster-interest-with-drugs.svg&#39;), type=&#39;SVG&#39;, zoom=500) #.png; use zoom or width args to increase size/resolution</code></pre>
 <pre><code>##                                                                                       file 
 ## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/cluster-interest-with-drugs.svg&quot;</code></pre>
-<pre class="r"><code># ??? Question 16 - answer in document
-
-
-# ==================================================================
+<pre class="r"><code># ==================================================================
 # SAVING CYTOSCAPE SESSION
 # ==================================================================
 
-saveSession(paste0(out.folder,&#39;breast-cancer-example.cys&#39;))</code></pre>
+#saveSession(paste0(out.folder,&#39;breast-cancer-example.cys&#39;))</code></pre>
 
 
 
