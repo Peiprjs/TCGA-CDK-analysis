@@ -50,7 +50,7 @@ if (!"name: CyTargetLinker, version: 4.1.0, status: Installed" %in% RCy3::getIns
 ###############################################################################################################
 
 # /!\ Uncomment setwd line if you're running manually
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 out.folder <- "../output/"
 dir.create(out.folder) 
 
@@ -67,9 +67,9 @@ pvalue.cutoff <- 0.05
 ###############################################################################################################
 
 pw.id <- "WP45" # Pathway of interest
-pathways.stepeight <- c("WP_CELL_CYCLE","WP_GASTRIC_CANCER_NETWORK_1","WP_RETINOBLASTOMA_GENE_IN_CANCER")
+pathways.stepeight <- c("WP_CELL_CYCLE","WP_G1_TO_S_CELL_CYCLE_CONTROL","WP_CHEMOKINE_SIGNALING", "WP_RAS_SIGNALING", "WP_INSULIN_SIGNALING")
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
-interest_cluster <- ""
+interest_cluster <- "3283" #3297 and 3283
 go.term <- "GO:0002768"
 
 # Possible pathways of interest:

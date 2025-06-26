@@ -51,11 +51,18 @@ genes.full <- RCy3::getTableColumns(columns = "GeneName,__glayCluster")
 genes.interest <- genes.full %>% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
 
 genes.interest
-if (interest_cluster == "") {
-  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")
-} else {
-  nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', interest_cluster, predicate = "IS")}
 
+cluster <- as.integer(interest_cluster)
+nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', cluster, predicate = "IS")
+
+
+# if (interest_cluster == "") {
+#   nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', unique(genes.interest[,2]), predicate = "IS")
+# } else {
+#   cluster <- interest_cluster
+#   nodes.cluster <- RCy3::createColumnFilter('__glayCluster', '__glayCluster', cluster, predicate = "IS")
+# }
+  
 RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = "shared name", subnetwork.name = paste0("PPI-cluster-Interest"))
 exportImage(paste0(out.folder,'cluster.svg'), type='SVG', zoom=500)
 
@@ -101,4 +108,3 @@ exportImage(paste0(out.folder,'cluster-interest-with-drugs.svg'), type='SVG', zo
 # ==================================================================
 
 #saveSession(paste0(out.folder,'breast-cancer-example.cys'))
-

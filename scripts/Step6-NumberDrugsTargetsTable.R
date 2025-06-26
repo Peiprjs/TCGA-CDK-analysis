@@ -16,7 +16,7 @@ createSubnetwork(n, e)
 
 RCy3::layoutNetwork()
 
-RCy3::analyzeNetwork(directed=TRUE)
+RCy3::analyzeNetwork(directed=FALSE)
 
 res <- getTableColumns(table="node", columns = c("display name", "GeneID", "CTL.Type", "Indegree", "Outdegree"))
 colnames(res) <- c("Name", "ID", "Type", "NumDrugs", "NumTargets")
