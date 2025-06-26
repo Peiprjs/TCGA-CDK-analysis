@@ -11,9 +11,9 @@
 
 <meta name="author" content="peipr" />
 
-<meta name="date" content="2025-06-24" />
+<meta name="date" content="2025-06-26" />
 
-<title>Step5.5_IdentifyClusters.R</title>
+<title>Step5_IdentifyClusters.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,9 +350,9 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Step5.5_IdentifyClusters.R</h1>
+<h1 class="title toc-ignore">Step5_IdentifyClusters.R</h1>
 <h4 class="author">peipr</h4>
-<h4 class="date">2025-06-24</h4>
+<h4 class="date">2025-06-26</h4>
 
 </div>
 
@@ -367,7 +367,8 @@ RCy3::cytoscapePing()</code></pre>
 <pre><code>## You are connected to Cytoscape!</code></pre>
 <pre class="r"><code># let&#39;s use community clustering to find clusters/modules in the network
 commandsRun(paste0(&#39;cluster glay createGroups=TRUE&#39;))</code></pre>
-<pre><code>## [1] &quot;  Clusters: 2855&quot;   &quot;Average size: 1.55&quot; &quot;Maximum size: 317&quot;  &quot;Minimum size: 1&quot;    &quot;Modularity: 0.874&quot;</code></pre>
+<pre><code>## [1] &quot;  Clusters: 3480&quot;    &quot;Average size: 1.272&quot; &quot;Maximum size: 76&quot;    &quot;Minimum size: 1&quot;    
+## [5] &quot;Modularity: 0.929&quot;</code></pre>
 <pre class="r"><code># ??? Question 14 - answer in document
 
 # ==================================================================
@@ -391,8 +392,8 @@ RCy3::setNodeLabelMapping(&quot;display name&quot;, style.name = &quot;centralit
 ## &quot;Visual Style applied.&quot;</code></pre>
 <pre class="r"><code>toggleGraphicsDetails()
 exportImage(paste0(out.folder,&#39;clustered-network.svg&#39;), type=&#39;SVG&#39;, zoom=500) #.png; use zoom or width args to increase size/resolution</code></pre>
-<pre><code>##                                                                          file 
-## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/output/clustered-network.svg&quot;</code></pre>
+<pre><code>##                                                                             file 
+## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/clustered-network.svg&quot;</code></pre>
 <pre class="r"><code># ==================================================================
   # Function of interest cluster
 # ==================================================================
@@ -404,20 +405,20 @@ RCy3::setVisualStyle(&quot;log2FC vis&quot;)</code></pre>
 genes.interest &lt;- genes.full %&gt;% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
 
 genes.interest</code></pre>
-<pre><code>##         GeneName __glayCluster
-## 1922366   CDKN2C          2686
-## 1922360   CDKN2B          2686
-## 1922345   CDKN2D          2686
-## 1922390   CDKN2A          2686
-## 1922375   CDKN1C          2686</code></pre>
+<pre><code>##       GeneName __glayCluster
+## 2950    CDKN1C          3283
+## 2968    CDKN2A          3283
+## 11401   CDKN2B          2846
+## 12691   CDKN2C          2416
+## 16141   CDKN2D          1266</code></pre>
 <pre class="r"><code>nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__glayCluster&#39;, unique(genes.interest[,2]), predicate = &quot;IS&quot;)</code></pre>
 <pre><code>## No edges selected.</code></pre>
 <pre class="r"><code>RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = &quot;shared name&quot;, subnetwork.name = paste0(&quot;PPI-cluster-Interest&quot;))</code></pre>
 <pre><code>## network 
-## 2276531</code></pre>
+##  409933</code></pre>
 <pre class="r"><code>exportImage(paste0(out.folder,&#39;cluster.svg&#39;), type=&#39;SVG&#39;, zoom=500)</code></pre>
-<pre><code>##                                                                file 
-## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/output/cluster.svg&quot;</code></pre>
+<pre><code>##                                                                   file 
+## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/cluster.svg&quot;</code></pre>
 <pre class="r"><code># Functional analysis
 # You could then run an enrichment analysis as we did in step 2:
 genes &lt;- RCy3::getTableColumns(columns = c(&quot;query term&quot;))$`query term`
@@ -439,8 +440,8 @@ unzip(system.file(&quot;extdata&quot;,&quot;drugbank-5.1.0.xgmml.zip&quot;, pack
 drugbank &lt;- file.path(getwd(), &quot;drugbank-5.1.0.xgmml&quot;)
 
 commandsRun(paste0(&#39;cytargetlinker extend idAttribute=&quot;GeneID&quot; linkSetFiles=&quot;&#39;, drugbank, &#39;&quot;&#39;) )</code></pre>
-<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot; &quot;Added edges: 41&quot;                    
-## [4] &quot;Added nodes: 39&quot;</code></pre>
+<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot;
+## [3] &quot;Added edges: 216&quot;                    &quot;Added nodes: 156&quot;</code></pre>
 <pre class="r"><code>commandsRun(&#39;cytargetlinker applyLayout network=&quot;current&quot;&#39;)
 
 my.drugs &lt;- selectNodes(&quot;drug&quot;, by.col = &quot;CTL.Type&quot;, preserve = FALSE)$nodes #easy way to collect node SUIDs by column value
@@ -566,13 +567,364 @@ mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.
 ## NULL
 ## 
 ## [[39]]
+## NULL
+## 
+## [[40]]
+## NULL
+## 
+## [[41]]
+## NULL
+## 
+## [[42]]
+## NULL
+## 
+## [[43]]
+## NULL
+## 
+## [[44]]
+## NULL
+## 
+## [[45]]
+## NULL
+## 
+## [[46]]
+## NULL
+## 
+## [[47]]
+## NULL
+## 
+## [[48]]
+## NULL
+## 
+## [[49]]
+## NULL
+## 
+## [[50]]
+## NULL
+## 
+## [[51]]
+## NULL
+## 
+## [[52]]
+## NULL
+## 
+## [[53]]
+## NULL
+## 
+## [[54]]
+## NULL
+## 
+## [[55]]
+## NULL
+## 
+## [[56]]
+## NULL
+## 
+## [[57]]
+## NULL
+## 
+## [[58]]
+## NULL
+## 
+## [[59]]
+## NULL
+## 
+## [[60]]
+## NULL
+## 
+## [[61]]
+## NULL
+## 
+## [[62]]
+## NULL
+## 
+## [[63]]
+## NULL
+## 
+## [[64]]
+## NULL
+## 
+## [[65]]
+## NULL
+## 
+## [[66]]
+## NULL
+## 
+## [[67]]
+## NULL
+## 
+## [[68]]
+## NULL
+## 
+## [[69]]
+## NULL
+## 
+## [[70]]
+## NULL
+## 
+## [[71]]
+## NULL
+## 
+## [[72]]
+## NULL
+## 
+## [[73]]
+## NULL
+## 
+## [[74]]
+## NULL
+## 
+## [[75]]
+## NULL
+## 
+## [[76]]
+## NULL
+## 
+## [[77]]
+## NULL
+## 
+## [[78]]
+## NULL
+## 
+## [[79]]
+## NULL
+## 
+## [[80]]
+## NULL
+## 
+## [[81]]
+## NULL
+## 
+## [[82]]
+## NULL
+## 
+## [[83]]
+## NULL
+## 
+## [[84]]
+## NULL
+## 
+## [[85]]
+## NULL
+## 
+## [[86]]
+## NULL
+## 
+## [[87]]
+## NULL
+## 
+## [[88]]
+## NULL
+## 
+## [[89]]
+## NULL
+## 
+## [[90]]
+## NULL
+## 
+## [[91]]
+## NULL
+## 
+## [[92]]
+## NULL
+## 
+## [[93]]
+## NULL
+## 
+## [[94]]
+## NULL
+## 
+## [[95]]
+## NULL
+## 
+## [[96]]
+## NULL
+## 
+## [[97]]
+## NULL
+## 
+## [[98]]
+## NULL
+## 
+## [[99]]
+## NULL
+## 
+## [[100]]
+## NULL
+## 
+## [[101]]
+## NULL
+## 
+## [[102]]
+## NULL
+## 
+## [[103]]
+## NULL
+## 
+## [[104]]
+## NULL
+## 
+## [[105]]
+## NULL
+## 
+## [[106]]
+## NULL
+## 
+## [[107]]
+## NULL
+## 
+## [[108]]
+## NULL
+## 
+## [[109]]
+## NULL
+## 
+## [[110]]
+## NULL
+## 
+## [[111]]
+## NULL
+## 
+## [[112]]
+## NULL
+## 
+## [[113]]
+## NULL
+## 
+## [[114]]
+## NULL
+## 
+## [[115]]
+## NULL
+## 
+## [[116]]
+## NULL
+## 
+## [[117]]
+## NULL
+## 
+## [[118]]
+## NULL
+## 
+## [[119]]
+## NULL
+## 
+## [[120]]
+## NULL
+## 
+## [[121]]
+## NULL
+## 
+## [[122]]
+## NULL
+## 
+## [[123]]
+## NULL
+## 
+## [[124]]
+## NULL
+## 
+## [[125]]
+## NULL
+## 
+## [[126]]
+## NULL
+## 
+## [[127]]
+## NULL
+## 
+## [[128]]
+## NULL
+## 
+## [[129]]
+## NULL
+## 
+## [[130]]
+## NULL
+## 
+## [[131]]
+## NULL
+## 
+## [[132]]
+## NULL
+## 
+## [[133]]
+## NULL
+## 
+## [[134]]
+## NULL
+## 
+## [[135]]
+## NULL
+## 
+## [[136]]
+## NULL
+## 
+## [[137]]
+## NULL
+## 
+## [[138]]
+## NULL
+## 
+## [[139]]
+## NULL
+## 
+## [[140]]
+## NULL
+## 
+## [[141]]
+## NULL
+## 
+## [[142]]
+## NULL
+## 
+## [[143]]
+## NULL
+## 
+## [[144]]
+## NULL
+## 
+## [[145]]
+## NULL
+## 
+## [[146]]
+## NULL
+## 
+## [[147]]
+## NULL
+## 
+## [[148]]
+## NULL
+## 
+## [[149]]
+## NULL
+## 
+## [[150]]
+## NULL
+## 
+## [[151]]
+## NULL
+## 
+## [[152]]
+## NULL
+## 
+## [[153]]
+## NULL
+## 
+## [[154]]
+## NULL
+## 
+## [[155]]
+## NULL
+## 
+## [[156]]
 ## NULL</code></pre>
 <pre class="r"><code># Try different layouts (e.g. yFiles organic layout) if nodes are overlapping too much 
 # Cytoscape &gt; Layout menu!
 
 exportImage(paste0(out.folder,&#39;cluster-interest-with-drugs.svg&#39;), type=&#39;SVG&#39;, zoom=500) #.png; use zoom or width args to increase size/resolution</code></pre>
-<pre><code>##                                                                                    file 
-## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/output/cluster-interest-with-drugs.svg&quot;</code></pre>
+<pre><code>##                                                                                       file 
+## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/cluster-interest-with-drugs.svg&quot;</code></pre>
 <pre class="r"><code># ??? Question 16 - answer in document
 
 
