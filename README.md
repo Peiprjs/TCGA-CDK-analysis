@@ -30,22 +30,20 @@ You can find the execution of all the code steps in [https://peiprjs.github.io/B
 
 # Steps
 
-[Step 0](Step0_Preamble.html)
+[Step 0 - Preamble](Step0_Preamble.html)
 
-[Step 1](Step1_DataExploration.html)
+[Step 1 - Volcano plot](Step1_DataExploration.html)
 
-[Step 2](Step2_EnrichmentAnalysiss.html)
+[Step 2 - Enrichment analysis](Step2_EnrichmentAnalysiss.html)
 
-[Step 3](Step3_PathwayVisualization.html)
+[Step 3 - Pathway visualization](Step3_PathwayVisualization.html)
 
-[Step 4](Step4_PPINetwork.html)
+[Step 4 - PPI network](Step4_PPINetwork.html)
 
-[Step 5](Step5_IdentifyClusters.html)
+[Step 5 - Cluster identification and isolation](Step5_IdentifyClusters.html)
 
-[Step 6](Step6-NumberDrugsTargetsTable.html)
+[Step 6 - GO process PPI drug extension](Step6_GO-Process_PPI_DrugExtension.html)
 
-[Step 7](Step7_GO-Process_PPI_DrugExtension.html)
-
-[Step 8](Step8_Pathways2PPI_DrugExtension.html)
+[Step 7 - Pathway to PPI drug extension](Step7_Pathways2PPI_DrugExtension.html)
 
 [Tools used](Toolsused.html)

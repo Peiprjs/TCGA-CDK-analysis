@@ -11,9 +11,9 @@
 
 <meta name="author" content="peipr" />
 
-<meta name="date" content="2025-06-26" />
+<meta name="date" content="2025-06-29" />
 
-<title>Step6-NumberDrugsTargetsTable.R</title>
+<title>Step7_GO-Process_PPI_DrugExtension.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,32 +350,544 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Step6-NumberDrugsTargetsTable.R</h1>
+<h1 class="title toc-ignore">Step7_GO-Process_PPI_DrugExtension.R</h1>
 <h4 class="author">peipr</h4>
-<h4 class="date">2025-06-26</h4>
+<h4 class="date">2025-06-29</h4>
 
 </div>
 
 
-<pre class="r"><code># make sure you have the extended CTL network open in Cytoscape!
+<pre class="r"><code># Make sure you run at least step 1 + step 2 before this
+# the input for this optional step is one of the GO processes
+# that you find in res.go.up.df or res.go.down.df
+# the idea is that you find all genes that are associated
+# with the process, make a PPI network, visualize the data 
+# and find drug targets
+
+# so instead of finding the module from the large network,
+# you define the module based on a process of interest
+
+# #############################################
+# GET GO TERM
+# #############################################
+
+# Check if Cytoscape is running
+cytoscapePing()</code></pre>
+<pre><code>## You are connected to Cytoscape!</code></pre>
+<pre class="r"><code># example &quot;DNA replication&quot;
+# look up GO ID in the enrichment result tables
+genes &lt;- res.go@geneSets[go.term]
+
+query &lt;- format_csv(as.data.frame(genes[1]), col_names=F, escape = &quot;double&quot;, eol =&quot;,&quot;)
+commandsRun(paste0(&#39;string protein query cutoff=0.9 newNetName=&quot;PPI network&quot; query=&quot;&#39;,query,&#39;&quot; limit=0 species=&quot;Homo sapiens&quot;&#39;))</code></pre>
+<pre><code>## [1] &quot;Loaded network &#39;STRING network - PPI network - 2&#39; with 324 nodes and 1024 edges&quot;</code></pre>
+<pre class="r"><code>analyzeNetwork()</code></pre>
+<pre><code>##                                    networkTitle                                       nodeCount 
+## &quot;STRING network - PPI network - 2 (undirected)&quot;                                           &quot;324&quot; 
+##                                       edgeCount                                     avNeighbors 
+##                                          &quot;1024&quot;                              &quot;9.25925925925926&quot; 
+##                                        diameter                                          radius 
+##                                             &quot;8&quot;                                             &quot;4&quot; 
+##                                           avSpl                                              cc 
+##                            &quot;3.1602928509905253&quot;                             &quot;0.457825253422492&quot; 
+##                                         density                                   heterogeneity 
+##                           &quot;0.04306632213608958&quot;                            &quot;0.9927638188411179&quot; 
+##                                  centralization                                             ncc 
+##                            &quot;0.2053466637687459&quot;                                            &quot;94&quot; 
+##                                            time 
+##                                          &quot;0.01&quot;</code></pre>
+<pre class="r"><code>RCy3::loadTableData(data=data, data.key.column = &quot;GeneName&quot;, table = &quot;node&quot;, table.key.column = &quot;query term&quot;)</code></pre>
+<pre><code>## [1] &quot;Success: Data loaded in defaultnode table&quot;</code></pre>
+<pre class="r"><code>RCy3::createVisualStyle(&quot;log2FC vis&quot;)
+RCy3::setNodeLabelMapping(&quot;display name&quot;, style.name = &quot;log2FC vis&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>control.points &lt;- c (-3.0, 0.0, 3.0)
+colors &lt;-  c (&#39;#5588DD&#39;, &#39;#FFFFFF&#39;, &#39;#DD8855&#39;)
+setNodeColorMapping(&quot;log2FC&quot;, control.points, colors, style.name = &quot;log2FC vis&quot;, default.color = &quot;#C0C0C0&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>RCy3::setVisualStyle(&quot;log2FC vis&quot;)</code></pre>
+<pre><code>##                 message 
+## &quot;Visual Style applied.&quot;</code></pre>
+<pre class="r"><code>RCy3::lockNodeDimensions(&quot;TRUE&quot;, &quot;log2FC vis&quot;)
+
+# Select significant genes and change border color
+x &lt;- RCy3::createColumnFilter(&#39;P.Value&#39;, &#39;P.Value&#39;, 0.05, &quot;LESS_THAN&quot;)</code></pre>
+<pre><code>## No edges selected.</code></pre>
+<pre class="r"><code>RCy3::setNodeBorderColorBypass(x$nodes, new.colors = &quot;#009900&quot;)
+RCy3::setNodeBorderWidthBypass(x$nodes, new.sizes = 7)
+RCy3::clearSelection()
+
+# ==================================================================
+# Extend the process PPI with known drug-target interactions from DrugBank
+# ==================================================================
+unzip(system.file(&quot;extdata&quot;,&quot;drugbank-5.1.0.xgmml.zip&quot;, package=&quot;rWikiPathways&quot;), exdir = getwd())
+drugbank &lt;- file.path(getwd(), &quot;drugbank-5.1.0.xgmml&quot;)
+
+commandsRun(paste0(&#39;cytargetlinker extend idAttribute=&quot;GeneID&quot; linkSetFiles=&quot;&#39;, drugbank, &#39;&quot;&#39;) )</code></pre>
+<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot; &quot;Added edges: 260&quot;                   
+## [4] &quot;Added nodes: 136&quot;</code></pre>
+<pre class="r"><code>commandsRun(&#39;cytargetlinker applyLayout network=&quot;current&quot;&#39;)
 
 my.drugs &lt;- selectNodes(&quot;drug&quot;, by.col = &quot;CTL.Type&quot;, preserve = FALSE)$nodes #easy way to collect node SUIDs by column value
-selectFirstNeighbors()</code></pre>
+clearSelection()
+setNodeColorBypass(my.drugs, &quot;#DD99FF&quot;)
+setNodeShapeBypass(my.drugs, &quot;hexagon&quot;)
+
+drug.labels &lt;- getTableColumns(columns=c(&quot;SUID&quot;,&quot;CTL.label&quot;))
+drug.labels &lt;- na.omit(drug.labels)
+mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.label)</code></pre>
+<pre><code>## [[1]]
+## NULL
+## 
+## [[2]]
+## NULL
+## 
+## [[3]]
+## NULL
+## 
+## [[4]]
+## NULL
+## 
+## [[5]]
+## NULL
+## 
+## [[6]]
+## NULL
+## 
+## [[7]]
+## NULL
+## 
+## [[8]]
+## NULL
+## 
+## [[9]]
+## NULL
+## 
+## [[10]]
+## NULL
+## 
+## [[11]]
+## NULL
+## 
+## [[12]]
+## NULL
+## 
+## [[13]]
+## NULL
+## 
+## [[14]]
+## NULL
+## 
+## [[15]]
+## NULL
+## 
+## [[16]]
+## NULL
+## 
+## [[17]]
+## NULL
+## 
+## [[18]]
+## NULL
+## 
+## [[19]]
+## NULL
+## 
+## [[20]]
+## NULL
+## 
+## [[21]]
+## NULL
+## 
+## [[22]]
+## NULL
+## 
+## [[23]]
+## NULL
+## 
+## [[24]]
+## NULL
+## 
+## [[25]]
+## NULL
+## 
+## [[26]]
+## NULL
+## 
+## [[27]]
+## NULL
+## 
+## [[28]]
+## NULL
+## 
+## [[29]]
+## NULL
+## 
+## [[30]]
+## NULL
+## 
+## [[31]]
+## NULL
+## 
+## [[32]]
+## NULL
+## 
+## [[33]]
+## NULL
+## 
+## [[34]]
+## NULL
+## 
+## [[35]]
+## NULL
+## 
+## [[36]]
+## NULL
+## 
+## [[37]]
+## NULL
+## 
+## [[38]]
+## NULL
+## 
+## [[39]]
+## NULL
+## 
+## [[40]]
+## NULL
+## 
+## [[41]]
+## NULL
+## 
+## [[42]]
+## NULL
+## 
+## [[43]]
+## NULL
+## 
+## [[44]]
+## NULL
+## 
+## [[45]]
+## NULL
+## 
+## [[46]]
+## NULL
+## 
+## [[47]]
+## NULL
+## 
+## [[48]]
+## NULL
+## 
+## [[49]]
+## NULL
+## 
+## [[50]]
+## NULL
+## 
+## [[51]]
+## NULL
+## 
+## [[52]]
+## NULL
+## 
+## [[53]]
+## NULL
+## 
+## [[54]]
+## NULL
+## 
+## [[55]]
+## NULL
+## 
+## [[56]]
+## NULL
+## 
+## [[57]]
+## NULL
+## 
+## [[58]]
+## NULL
+## 
+## [[59]]
+## NULL
+## 
+## [[60]]
+## NULL
+## 
+## [[61]]
+## NULL
+## 
+## [[62]]
+## NULL
+## 
+## [[63]]
+## NULL
+## 
+## [[64]]
+## NULL
+## 
+## [[65]]
+## NULL
+## 
+## [[66]]
+## NULL
+## 
+## [[67]]
+## NULL
+## 
+## [[68]]
+## NULL
+## 
+## [[69]]
+## NULL
+## 
+## [[70]]
+## NULL
+## 
+## [[71]]
+## NULL
+## 
+## [[72]]
+## NULL
+## 
+## [[73]]
+## NULL
+## 
+## [[74]]
+## NULL
+## 
+## [[75]]
+## NULL
+## 
+## [[76]]
+## NULL
+## 
+## [[77]]
+## NULL
+## 
+## [[78]]
+## NULL
+## 
+## [[79]]
+## NULL
+## 
+## [[80]]
+## NULL
+## 
+## [[81]]
+## NULL
+## 
+## [[82]]
+## NULL
+## 
+## [[83]]
+## NULL
+## 
+## [[84]]
+## NULL
+## 
+## [[85]]
+## NULL
+## 
+## [[86]]
+## NULL
+## 
+## [[87]]
+## NULL
+## 
+## [[88]]
+## NULL
+## 
+## [[89]]
+## NULL
+## 
+## [[90]]
+## NULL
+## 
+## [[91]]
+## NULL
+## 
+## [[92]]
+## NULL
+## 
+## [[93]]
+## NULL
+## 
+## [[94]]
+## NULL
+## 
+## [[95]]
+## NULL
+## 
+## [[96]]
+## NULL
+## 
+## [[97]]
+## NULL
+## 
+## [[98]]
+## NULL
+## 
+## [[99]]
+## NULL
+## 
+## [[100]]
+## NULL
+## 
+## [[101]]
+## NULL
+## 
+## [[102]]
+## NULL
+## 
+## [[103]]
+## NULL
+## 
+## [[104]]
+## NULL
+## 
+## [[105]]
+## NULL
+## 
+## [[106]]
+## NULL
+## 
+## [[107]]
+## NULL
+## 
+## [[108]]
+## NULL
+## 
+## [[109]]
+## NULL
+## 
+## [[110]]
+## NULL
+## 
+## [[111]]
+## NULL
+## 
+## [[112]]
+## NULL
+## 
+## [[113]]
+## NULL
+## 
+## [[114]]
+## NULL
+## 
+## [[115]]
+## NULL
+## 
+## [[116]]
+## NULL
+## 
+## [[117]]
+## NULL
+## 
+## [[118]]
+## NULL
+## 
+## [[119]]
+## NULL
+## 
+## [[120]]
+## NULL
+## 
+## [[121]]
+## NULL
+## 
+## [[122]]
+## NULL
+## 
+## [[123]]
+## NULL
+## 
+## [[124]]
+## NULL
+## 
+## [[125]]
+## NULL
+## 
+## [[126]]
+## NULL
+## 
+## [[127]]
+## NULL
+## 
+## [[128]]
+## NULL
+## 
+## [[129]]
+## NULL
+## 
+## [[130]]
+## NULL
+## 
+## [[131]]
+## NULL
+## 
+## [[132]]
+## NULL
+## 
+## [[133]]
+## NULL
+## 
+## [[134]]
+## NULL
+## 
+## [[135]]
+## NULL
+## 
+## [[136]]
+## NULL</code></pre>
+<pre class="r"><code># Try different layouts (e.g. yFiles organic layout) if nodes are overlapping too much 
+# Cytoscape &gt; Layout menu!
+
+exportImage(paste0(out.folder,&#39;cluster-&#39;,cluster,&#39;-with-drugs.png&#39;), type=&#39;PNG&#39;, zoom=500) #.png; use zoom or width args to increase size/resolution</code></pre>
+<pre><code>##                                                                                   file 
+## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/cluster-3283-with-drugs.png&quot;</code></pre>
+<pre class="r"><code># ==================================================================
+# SAVING CYTOSCAPE SESSION
+# ==================================================================
+
+saveSession(paste0(out.folder,&#39;breast-cancer-GO-PPI.cys&#39;))
+
+
+
+## OPTIONAL - FILTER network to only include drugs + targets
+
+selectNodes(my.drugs)</code></pre>
 <pre><code>## $nodes
-##   [1] 413685 413430 411123 412911 413679 413424 413694 412665 413175 412920 411128 412677 413445
-##  [14] 413190 413700 412929 411393 413439 412671 413184 413709 412941 413451 412683 412935 411143
-##  [27] 413715 412947 412689 413457 412701 413469 413214 411163 412953 413463 412695 413208 412965
-##  [40] 413478 412707 413730 412959 411168 413742 412971 413484 412713 411433 411178 413223 413736
-##  [53] 412725 413493 413238 413748 411188 412977 412719 413232 412989 413502 412731 413244 413754
-##  [66] 412983 412998 413763 413508 412737 413250 412749 411213 413514 412743 413256 413013 412755
-##  [79] 413265 411218 413007 413520 413277 413019 412761 413271 412773 413028 412767 413535 413550
-##  [92] 412779 413292 413034 413544 412785 413298 413040 411248 412797 413565 413310 413049 412791
-## [105] 413559 413304 413061 413571 412803 413316 413067 412809 413577 413322 413589 413334 413073
-## [118] 412818 413583 413328 413085 411293 413598 412830 412824 413349 413091 413604 412836 413343
-## [131] 413355 413097 412842 413109 412854 413364 413103 412848 413616 413115 412860 413370 413637
-## [144] 411333 413382 412611 413121 412866 413376 413646 412878 411083 413130 411338 412872 413397
-## [157] 411093 413142 413652 411348 413391 413136 411088 413661 412893 411358 413403 413148 412887
-## [170] 413667 412899 411363 413412 411108 413154 413166 412905 411113 413418
+##   [1] 471797 472307 472049 471791 472061 471803 472313 472568 472325 472067 471809 471821 472331 472073 471815 472583
+##  [17] 471830 472085 472079 472094 471581 471836 471575 472343 472358 472613 472100 471587 471842 472622 471854 472106
+##  [33] 471593 471848 472118 471605 472112 471599 472124 471611 472379 472631 472646 471878 471620 472130 472385 471872
+##  [49] 472142 472397 471884 471626 472136 472391 472403 471632 472412 471644 472154 471896 472166 471650 471905 472430
+##  [65] 472172 471659 472682 472424 471911 472181 471668 471923 472700 472187 471674 472442 471686 472451 471938 472706
+##  [81] 471680 471950 472202 472457 471944 472469 471701 472721 472208 472463 471695 472733 471707 472475 472217 472727
+##  [97] 471959 471713 472223 471980 472235 472490 471722 472745 472502 471734 471986 472241 471728 472253 472508 471740
+## [113] 471995 472262 471749 472514 472526 472013 471755 472520 472277 472019 471761 472271 471773 472283 472025 472535
+## [129] 471767 472550 471782 472037 471521 472031 472556 472298
+## 
+## $edges
+## list()</code></pre>
+<pre class="r"><code>selectFirstNeighbors()</code></pre>
+<pre><code>## $nodes
+##   [1] 463349 472049 463344 472061 463354 472568 472067 463359 462859 472073 472583 472085 462869 462864 472079 472094
+##  [17] 471581 463389 471575 472613 472100 471587 463394 462369 472622 472106 471593 462889 472118 463414 471605 472112
+##  [33] 471599 472124 471611 463419 472631 472646 471620 472130 472142 462924 471626 463434 472136 462929 471632 462429
+##  [49] 471644 472154 463449 472166 471650 463469 472172 462444 471659 472682 472181 471668 463474 462449 472700 472187
+##  [65] 471674 461944 471686 463494 472706 471680 462464 472202 471701 462484 472721 472208 471695 472733 471707 461979
+##  [81] 463514 472217 472727 471713 463009 472223 463519 472235 471722 472745 463529 471734 463029 472241 471728 461999
+##  [97] 472253 463549 471740 463034 472262 471749 471755 463049 462024 472277 471761 472271 471773 472283 471767 471782
+## [113] 472298 471797 472307 471791 462589 471803 462074 472313 462584 472325 462594 471809 471821 472331 471815 462599
+## [129] 471830 463124 463134 471836 472343 472358 463139 471842 462624 471854 471848 472379 463159 471878 472385 471872
+## [145] 472397 471884 463179 472391 472403 462674 462174 472412 462684 463194 471896 471905 472430 463209 472424 462184
+## [161] 471911 462709 471923 462704 472442 462214 472451 471938 471950 462734 472457 471944 463254 472469 462229 472463
+## [177] 472475 471959 463269 463264 471980 472490 472502 462774 463284 471986 463279 463294 472508 471995 462779 463289
+## [193] 472514 472526 472013 472520 472019 472025 462809 472535 472550 472037 462309 471521 463329 472031 472556
 ## 
 ## $edges
 ## list()</code></pre>
@@ -383,422 +895,7 @@ selectFirstNeighbors()</code></pre>
 
 createSubnetwork(&quot;selected&quot;, &quot;all&quot;)</code></pre>
 <pre><code>## network 
-##  446284</code></pre>
-<pre class="r"><code>selectEdges(&quot;pp&quot;, by.col=&quot;interaction&quot;)</code></pre>
-<pre><code>## $nodes
-## list()
-## 
-## $edges
-##  [1] 411763 411828 411508 411823 411833 411768 411653 411523 411458 411533 411918 411913 411658
-## [14] 411463 411478 411923 411668 411473 412048 411933 411613 411998 411803 411738 411938 411743
-## [27] 411693 411758 411628 411753 411623</code></pre>
-<pre class="r"><code>invertEdgeSelection()</code></pre>
-<pre><code>## $nodes
-## list()
-## 
-## $edges
-##   [1] 413172 413169 413682 413181 413691 412668 413178 413688 413187 413697 412674 412686 413196
-##  [14] 413193 413706 413703 412680 413205 413718 412692 413202 413199 413712 413211 413724 413721
-##  [27] 412698 413733 412710 413220 413217 413727 412704 413229 413739 412716 413226 413235 413745
-##  [40] 412722 413757 412734 413241 413751 412728 413253 413766 412740 413247 413760 413262 413259
-##  [53] 413772 413769 412746 412758 413268 412752 412764 413274 413286 413283 412770 413280 412782
-##  [66] 413289 412776 413301 412788 413295 413307 412794 412806 413313 412800 413325 412812 413319
-##  [79] 412821 413331 412815 412827 413340 413337 412833 413346 412845 413358 412839 413352 412851
-##  [92] 413361 413373 412857 413367 412869 413379 412863 412875 413388 413385 412884 412881 413394
-## [105] 413406 412890 413400 412902 413409 412896 413421 412908 413415 412917 413427 412914 412926
-## [118] 412923 413436 413433 412932 413442 413454 412938 413448 412950 413460 412944 412956 413466
-## [131] 413475 412962 413472 412974 413481 412968 412980 413490 413487 413499 412986 413496 412995
-## [144] 413505 412992 413517 413004 413001 413511 413526 413523 413010 413022 413532 413529 413016
-## [157] 413541 413025 413538 413037 413547 413031 413046 413043 413556 413553 413052 413562 413574
-## [170] 413058 413055 413568 413070 413580 413064 413076 413586 413595 413082 413079 413592 413094
-## [183] 413601 413088 413613 413100 413610 413607 413622 413619 413106 413118 413628 413625 413112
-## [196] 413124 413634 413631 413133 413643 413127 413640 413139 413649 413145 413658 413655 413157
-## [209] 413670 412644 413151 413664 413163 413676 413673 413160</code></pre>
-<pre class="r"><code>e &lt;- getSelectedEdges()
-selectAllNodes()
-n &lt;- getSelectedNodes()
-createSubnetwork(n, e)</code></pre>
-<pre><code>## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length
-## Warning in cmd.list.col[i] &lt;- paste(cmd.by.col, cmd.list[i], sep = &quot;:&quot;): number of items to replace
-## is not a multiple of replacement length</code></pre>
-<pre><code>## network 
-##  448268</code></pre>
-<pre class="r"><code>RCy3::layoutNetwork()
-
-RCy3::analyzeNetwork(directed=TRUE)</code></pre>
-<pre><code>##                             networkTitle                                nodeCount 
-## &quot;CTL_PPI-cluster-Interest(2) (directed)&quot;                                    &quot;179&quot; 
-##                                edgeCount                              avNeighbors 
-##                                    &quot;216&quot;                     &quot;2.4134078212290504&quot; 
-##                                 diameter                                   radius 
-##                                      &quot;1&quot;                                      &quot;1&quot; 
-##                                    avSpl                                       cc 
-##                                    &quot;1.0&quot;                                    &quot;0.0&quot; 
-##                                  density                                      ncc 
-##                    &quot;0.00677923545289059&quot;                                      &quot;9&quot; 
-##                                      mnp                                      nsl 
-##                                      &quot;0&quot;                                      &quot;0&quot; 
-##                                     time 
-##                                  &quot;0.158&quot;</code></pre>
-<pre class="r"><code>res &lt;- getTableColumns(table=&quot;node&quot;, columns = c(&quot;display name&quot;, &quot;GeneID&quot;, &quot;CTL.Type&quot;, &quot;Indegree&quot;, &quot;Outdegree&quot;))
-colnames(res) &lt;- c(&quot;Name&quot;, &quot;ID&quot;, &quot;Type&quot;, &quot;NumDrugs&quot;, &quot;NumTargets&quot;)
-
-write.table(res, file=&quot;drug-target-info.tsv&quot;, quote=FALSE, sep=&quot;\t&quot;, row.names = FALSE, col.names = TRUE)</code></pre>
+##  505460</code></pre>
 
 
 

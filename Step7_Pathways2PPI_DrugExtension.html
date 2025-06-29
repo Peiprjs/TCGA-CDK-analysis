@@ -13,7 +13,7 @@
 
 <meta name="date" content="2025-06-29" />
 
-<title>Step3_PathwayVisualization.R</title>
+<title>Step8_Pathways2PPI_DrugExtension.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,61 +350,808 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Step3_PathwayVisualization.R</h1>
+<h1 class="title toc-ignore">Step8_Pathways2PPI_DrugExtension.R</h1>
 <h4 class="author">peipr</h4>
 <h4 class="date">2025-06-29</h4>
 
 </div>
 
 
-<pre class="r"><code># Script:       Step3_PathwayVisualization.R
-# Description:  In this script, we will explore the differential gene 
-#               expression dataset comparing lung cancer vs. healthy tissue
-#               samples. The RNA-sequencing dataset was retrieved from 
-#               TCGA (The Cancer Genome Atlas) and pre-processed in R. 
-#               Differential gene expression analysis was performed with the 
-#               DESeq2 R-package. 
-# Version: 3.0
-# Last updated: 2025-06-24
-# Author: mkutmon &amp; peiprJS
+<pre class="r"><code># Make sure you run at least step 1 + step 2 before this
+# the input for this optional step is a list of pathway names
+# that you find in res.wp.df table
+# the idea is that you find all genes that are associated
+# with the pathways, make one PPI network, visualize the data 
+# and find drug targets
+
+# so instead of finding the module from the large network,
+# you define the module based on the pathways of interest
 
 # #############################################
-# PATHWAY VISUALIZATION
+# GET GO TERM
 # #############################################
 
-# Open Pathway of interest - based on the res.wp.up.df and res.wp.down.df, you can
-# select pathways of interest
-# Find the associated pathway identifier
-# https://www.wikipathways.org/browse/table.html
-# Make sure you select the ID of the human pathway
-# Example: Cell cycle pathway
+library(tidyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;tidyr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:S4Vectors&#39;:
+## 
+##     expand</code></pre>
+<pre class="r"><code># Check if Cytoscape is running
+cytoscapePing()</code></pre>
+<pre><code>## You are connected to Cytoscape!</code></pre>
+<pre class="r"><code># look up pathway names in the enrichment result tables - you can add more
+# in the vector if you need to
+# these pathways are from the lung cancer practical - replace with pathways
+# from your breast cancer analysis!
+pathways &lt;- pathways.stepeight
+geneSets &lt;- res.wp@geneSets
+genes &lt;- geneSets[names(geneSets) %in% pathways]
 
-#####################################################################
-# CODING TASK - CHANGE PATHWAY ID TO PATHWAY OF INTEREST
-#####################################################################
-RCy3::commandsRun(paste0(&#39;wikipathways import-as-pathway id=&#39;,pw.id)) 
+# long format first: Gene - Pathway
+gene_pathway_df &lt;- do.call(rbind, lapply(names(genes), function(pw) {
+  data.frame(Pathway = pw, Gene = genes[[pw]], stringsAsFactors = FALSE)
+}))
 
-toggleGraphicsDetails()
+pathway.genes &lt;- gene_pathway_df %&gt;%
+  dplyr::mutate(Present = 1) %&gt;%
+  tidyr::pivot_wider(names_from = Pathway, values_from = Present, values_fill = 0)
 
-# load the data into Cytoscape (columns get added at the bottom)
-loadTableData(data, data.key.column = &quot;GeneID&quot;, table.key.column = &quot;Ensembl&quot;)</code></pre>
+# add NumPathways column: count how many pathways each gene appears in
+pathway.genes &lt;- pathway.genes %&gt;%
+  mutate(NumPathways = rowSums(across(all_of(pathways))))
+
+# reorder columns: Gene, N_Pathways, then pathways
+pathway.genes &lt;- pathway.genes %&gt;%
+  select(Gene, NumPathways, all_of(pathways))
+
+# view result
+head(pathway.genes)</code></pre>
+<pre><code>## # A tibble: 6 × 7
+##   Gene       NumPathways WP_CELL_CYCLE WP_G1_TO_S_CELL_CYCL…¹ WP_CHEMOKINE_SIGNALING WP_RAS_SIGNALING WP_INSULIN_SIGNALING
+##   &lt;chr&gt;            &lt;dbl&gt;         &lt;dbl&gt;                  &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;                &lt;dbl&gt;
+## 1 ENSG00000…           2             1                      0                      0                1                    0
+## 2 ENSG00000…           1             1                      0                      0                0                    0
+## 3 ENSG00000…           1             1                      0                      0                0                    0
+## 4 ENSG00000…           1             1                      0                      0                0                    0
+## 5 ENSG00000…           1             1                      0                      0                0                    0
+## 6 ENSG00000…           1             1                      0                      0                0                    0
+## # ℹ abbreviated name: ¹​WP_G1_TO_S_CELL_CYCLE_CONTROL</code></pre>
+<pre class="r"><code>query &lt;- format_csv(as.data.frame(pathway.genes$Gene), col_names=F, escape = &quot;double&quot;, eol =&quot;,&quot;)
+commandsPOST(paste0(&#39;string protein query cutoff=0.9 newNetName=&quot;PPI network&quot; query=&quot;&#39;,query,&#39;&quot; limit=0 species=&quot;Homo sapiens&quot;&#39;))</code></pre>
+<pre><code>##   SUID 
+## 508305</code></pre>
+<pre class="r"><code>analyzeNetwork()</code></pre>
+<pre><code>##                                    networkTitle                                       nodeCount 
+## &quot;STRING network - PPI network - 3 (undirected)&quot;                                           &quot;546&quot; 
+##                                       edgeCount                                     avNeighbors 
+##                                          &quot;4477&quot;                             &quot;17.41634241245136&quot; 
+##                                        diameter                                          radius 
+##                                            &quot;11&quot;                                             &quot;6&quot; 
+##                                           avSpl                                              cc 
+##                            &quot;3.2834171464112076&quot;                           &quot;0.49373196547372655&quot; 
+##                                         density                                   heterogeneity 
+##                           &quot;0.03394998520945684&quot;                            &quot;0.8333075774613777&quot; 
+##                                  centralization                                             ncc 
+##                           &quot;0.11660118177387914&quot;                                            &quot;32&quot; 
+##                                            time 
+##                                         &quot;0.179&quot;</code></pre>
+<pre class="r"><code>RCy3::loadTableData(data=data, data.key.column = &quot;GeneID&quot;, table = &quot;node&quot;, table.key.column = &quot;query term&quot;)</code></pre>
 <pre><code>## [1] &quot;Success: Data loaded in defaultnode table&quot;</code></pre>
-<pre class="r"><code># visualize the log2FC as a node fill color gradient
-RCy3::setNodeColorMapping(table.column = &#39;log2FC&#39;, mapping.type = &#39;c&#39;, table.column.values = c(-1,0,1), colors = paletteColorBrewerRdBu, default.color = &#39;#FFFFFF&#39;, style.name = &#39;WikiPathways&#39;)</code></pre>
+<pre class="r"><code>RCy3::loadTableData(data=pathway.genes, data.key.column = &quot;Gene&quot;, table = &quot;node&quot;, table.key.column = &quot;query term&quot;)</code></pre>
+<pre><code>## [1] &quot;Success: Data loaded in defaultnode table&quot;</code></pre>
+<pre class="r"><code># VISUALIZATION 1 
+# fill color = log2FC gradient
+# green border = significance
+
+RCy3::createVisualStyle(&quot;log2FC vis&quot;)
+RCy3::setNodeLabelMapping(&quot;display name&quot;, style.name = &quot;log2FC vis&quot;)</code></pre>
 <pre><code>## NULL</code></pre>
-<pre class="r"><code># Select significant genes and change border color
+<pre class="r"><code>control.points &lt;- c (-3.0, 0.0, 3.0)
+colors &lt;-  c (&#39;#5588DD&#39;, &#39;#FFFFFF&#39;, &#39;#DD8855&#39;)
+setNodeColorMapping(&quot;log2FC&quot;, control.points, colors, style.name = &quot;log2FC vis&quot;, default.color = &quot;#C0C0C0&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>RCy3::setEdgeColorDefault(&quot;#CCCCCC&quot;, style.name = &quot;log2FC vis&quot;)
+RCy3::setVisualStyle(&quot;log2FC vis&quot;)</code></pre>
+<pre><code>##                 message 
+## &quot;Visual Style applied.&quot;</code></pre>
+<pre class="r"><code>RCy3::lockNodeDimensions(&quot;TRUE&quot;, &quot;log2FC vis&quot;)
+
+# Select significant genes and change border color
 x &lt;- RCy3::createColumnFilter(&#39;adj.P.Value&#39;, &#39;adj.P.Value&#39;, 0.05, &quot;LESS_THAN&quot;)</code></pre>
 <pre><code>## No edges selected.</code></pre>
-<pre class="r"><code>RCy3::setNodeBorderColorBypass(x$nodes, new.colors = &quot;#009900&quot;)</code></pre>
-<pre><code>## Finding unique SUIDs for nodes with the same name...</code></pre>
-<pre class="r"><code>RCy3::setNodeBorderWidthBypass(x$nodes, new.sizes = 7)</code></pre>
-<pre><code>## Finding unique SUIDs for nodes with the same name...</code></pre>
-<pre class="r"><code>RCy3::clearSelection()
+<pre class="r"><code>RCy3::setNodeBorderColorBypass(x$nodes, new.colors = &quot;#009900&quot;)
+RCy3::setNodeBorderWidthBypass(x$nodes, new.sizes = 7)
+RCy3::clearSelection</code></pre>
+<pre><code>## function (type = &quot;both&quot;, network = NULL, base.url = .defaultBaseUrl) 
+## {
+##     net.SUID &lt;- getNetworkSuid(network, base.url)
+##     if (type %in% c(&quot;nodes&quot;, &quot;both&quot;)) {
+##         resource.uri &lt;- res &lt;- cyrestPUT(paste(&quot;networks&quot;, net.SUID, 
+##             &quot;tables/defaultnode/columns/selected&quot;, sep = &quot;/&quot;), 
+##             parameters = list(default = &quot;false&quot;), base.url = base.url)
+##     }
+##     if (type %in% c(&quot;edges&quot;, &quot;both&quot;)) {
+##         res &lt;- cyrestPUT(paste(&quot;networks&quot;, net.SUID, &quot;tables/defaultedge/columns/selected&quot;, 
+##             sep = &quot;/&quot;), parameters = list(default = &quot;false&quot;), 
+##             base.url = base.url)
+##     }
+##     invisible(res)
+## }
+## &lt;bytecode: 0x55727f3bf5d8&gt;
+## &lt;environment: namespace:RCy3&gt;</code></pre>
+<pre class="r"><code>exportImage(paste0(out.folder,&#39;selected-pathways-PPI.png&#39;), type=&#39;PNG&#39;, zoom=500) #.png; use zoom or width args to increase size/resolution</code></pre>
+<pre><code>##                                                                                 file 
+## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/selected-pathways-PPI.png&quot;</code></pre>
+<pre class="r"><code># ==================================================================
+# Extend the process PPI with known drug-target interactions from DrugBank
+# ==================================================================
+unzip(system.file(&quot;extdata&quot;,&quot;drugbank-5.1.0.xgmml.zip&quot;, package=&quot;rWikiPathways&quot;), exdir = getwd())
+drugbank &lt;- file.path(getwd(), &quot;drugbank-5.1.0.xgmml&quot;)
 
-exportImage(paste0(out.folder,&#39;pathway-&#39;,pw.id,&#39;.png&#39;), type=&#39;PNG&#39;, zoom=500) </code></pre>
-<pre><code>##                                                                        file 
-## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/pathway-WP45.png&quot;</code></pre>
-<pre class="r"><code># ??? Question 9 - answer in document</code></pre>
+commandsRun(paste0(&#39;cytargetlinker extend idAttribute=&quot;GeneID&quot; linkSetFiles=&quot;&#39;, drugbank, &#39;&quot;&#39;) )</code></pre>
+<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot; &quot;Added edges: 378&quot;                   
+## [4] &quot;Added nodes: 196&quot;</code></pre>
+<pre class="r"><code>commandsRun(&#39;cytargetlinker applyLayout network=&quot;current&quot;&#39;)
+
+my.drugs &lt;- selectNodes(&quot;drug&quot;, by.col = &quot;CTL.Type&quot;, preserve = FALSE)$nodes #easy way to collect node SUIDs by column value
+clearSelection()
+setNodeColorBypass(my.drugs, &quot;#DD99FF&quot;)
+setNodeShapeBypass(my.drugs, &quot;hexagon&quot;)
+
+drug.labels &lt;- getTableColumns(columns=c(&quot;SUID&quot;,&quot;CTL.label&quot;))
+drug.labels &lt;- na.omit(drug.labels)
+mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.label)</code></pre>
+<pre><code>## [[1]]
+## NULL
+## 
+## [[2]]
+## NULL
+## 
+## [[3]]
+## NULL
+## 
+## [[4]]
+## NULL
+## 
+## [[5]]
+## NULL
+## 
+## [[6]]
+## NULL
+## 
+## [[7]]
+## NULL
+## 
+## [[8]]
+## NULL
+## 
+## [[9]]
+## NULL
+## 
+## [[10]]
+## NULL
+## 
+## [[11]]
+## NULL
+## 
+## [[12]]
+## NULL
+## 
+## [[13]]
+## NULL
+## 
+## [[14]]
+## NULL
+## 
+## [[15]]
+## NULL
+## 
+## [[16]]
+## NULL
+## 
+## [[17]]
+## NULL
+## 
+## [[18]]
+## NULL
+## 
+## [[19]]
+## NULL
+## 
+## [[20]]
+## NULL
+## 
+## [[21]]
+## NULL
+## 
+## [[22]]
+## NULL
+## 
+## [[23]]
+## NULL
+## 
+## [[24]]
+## NULL
+## 
+## [[25]]
+## NULL
+## 
+## [[26]]
+## NULL
+## 
+## [[27]]
+## NULL
+## 
+## [[28]]
+## NULL
+## 
+## [[29]]
+## NULL
+## 
+## [[30]]
+## NULL
+## 
+## [[31]]
+## NULL
+## 
+## [[32]]
+## NULL
+## 
+## [[33]]
+## NULL
+## 
+## [[34]]
+## NULL
+## 
+## [[35]]
+## NULL
+## 
+## [[36]]
+## NULL
+## 
+## [[37]]
+## NULL
+## 
+## [[38]]
+## NULL
+## 
+## [[39]]
+## NULL
+## 
+## [[40]]
+## NULL
+## 
+## [[41]]
+## NULL
+## 
+## [[42]]
+## NULL
+## 
+## [[43]]
+## NULL
+## 
+## [[44]]
+## NULL
+## 
+## [[45]]
+## NULL
+## 
+## [[46]]
+## NULL
+## 
+## [[47]]
+## NULL
+## 
+## [[48]]
+## NULL
+## 
+## [[49]]
+## NULL
+## 
+## [[50]]
+## NULL
+## 
+## [[51]]
+## NULL
+## 
+## [[52]]
+## NULL
+## 
+## [[53]]
+## NULL
+## 
+## [[54]]
+## NULL
+## 
+## [[55]]
+## NULL
+## 
+## [[56]]
+## NULL
+## 
+## [[57]]
+## NULL
+## 
+## [[58]]
+## NULL
+## 
+## [[59]]
+## NULL
+## 
+## [[60]]
+## NULL
+## 
+## [[61]]
+## NULL
+## 
+## [[62]]
+## NULL
+## 
+## [[63]]
+## NULL
+## 
+## [[64]]
+## NULL
+## 
+## [[65]]
+## NULL
+## 
+## [[66]]
+## NULL
+## 
+## [[67]]
+## NULL
+## 
+## [[68]]
+## NULL
+## 
+## [[69]]
+## NULL
+## 
+## [[70]]
+## NULL
+## 
+## [[71]]
+## NULL
+## 
+## [[72]]
+## NULL
+## 
+## [[73]]
+## NULL
+## 
+## [[74]]
+## NULL
+## 
+## [[75]]
+## NULL
+## 
+## [[76]]
+## NULL
+## 
+## [[77]]
+## NULL
+## 
+## [[78]]
+## NULL
+## 
+## [[79]]
+## NULL
+## 
+## [[80]]
+## NULL
+## 
+## [[81]]
+## NULL
+## 
+## [[82]]
+## NULL
+## 
+## [[83]]
+## NULL
+## 
+## [[84]]
+## NULL
+## 
+## [[85]]
+## NULL
+## 
+## [[86]]
+## NULL
+## 
+## [[87]]
+## NULL
+## 
+## [[88]]
+## NULL
+## 
+## [[89]]
+## NULL
+## 
+## [[90]]
+## NULL
+## 
+## [[91]]
+## NULL
+## 
+## [[92]]
+## NULL
+## 
+## [[93]]
+## NULL
+## 
+## [[94]]
+## NULL
+## 
+## [[95]]
+## NULL
+## 
+## [[96]]
+## NULL
+## 
+## [[97]]
+## NULL
+## 
+## [[98]]
+## NULL
+## 
+## [[99]]
+## NULL
+## 
+## [[100]]
+## NULL
+## 
+## [[101]]
+## NULL
+## 
+## [[102]]
+## NULL
+## 
+## [[103]]
+## NULL
+## 
+## [[104]]
+## NULL
+## 
+## [[105]]
+## NULL
+## 
+## [[106]]
+## NULL
+## 
+## [[107]]
+## NULL
+## 
+## [[108]]
+## NULL
+## 
+## [[109]]
+## NULL
+## 
+## [[110]]
+## NULL
+## 
+## [[111]]
+## NULL
+## 
+## [[112]]
+## NULL
+## 
+## [[113]]
+## NULL
+## 
+## [[114]]
+## NULL
+## 
+## [[115]]
+## NULL
+## 
+## [[116]]
+## NULL
+## 
+## [[117]]
+## NULL
+## 
+## [[118]]
+## NULL
+## 
+## [[119]]
+## NULL
+## 
+## [[120]]
+## NULL
+## 
+## [[121]]
+## NULL
+## 
+## [[122]]
+## NULL
+## 
+## [[123]]
+## NULL
+## 
+## [[124]]
+## NULL
+## 
+## [[125]]
+## NULL
+## 
+## [[126]]
+## NULL
+## 
+## [[127]]
+## NULL
+## 
+## [[128]]
+## NULL
+## 
+## [[129]]
+## NULL
+## 
+## [[130]]
+## NULL
+## 
+## [[131]]
+## NULL
+## 
+## [[132]]
+## NULL
+## 
+## [[133]]
+## NULL
+## 
+## [[134]]
+## NULL
+## 
+## [[135]]
+## NULL
+## 
+## [[136]]
+## NULL
+## 
+## [[137]]
+## NULL
+## 
+## [[138]]
+## NULL
+## 
+## [[139]]
+## NULL
+## 
+## [[140]]
+## NULL
+## 
+## [[141]]
+## NULL
+## 
+## [[142]]
+## NULL
+## 
+## [[143]]
+## NULL
+## 
+## [[144]]
+## NULL
+## 
+## [[145]]
+## NULL
+## 
+## [[146]]
+## NULL
+## 
+## [[147]]
+## NULL
+## 
+## [[148]]
+## NULL
+## 
+## [[149]]
+## NULL
+## 
+## [[150]]
+## NULL
+## 
+## [[151]]
+## NULL
+## 
+## [[152]]
+## NULL
+## 
+## [[153]]
+## NULL
+## 
+## [[154]]
+## NULL
+## 
+## [[155]]
+## NULL
+## 
+## [[156]]
+## NULL
+## 
+## [[157]]
+## NULL
+## 
+## [[158]]
+## NULL
+## 
+## [[159]]
+## NULL
+## 
+## [[160]]
+## NULL
+## 
+## [[161]]
+## NULL
+## 
+## [[162]]
+## NULL
+## 
+## [[163]]
+## NULL
+## 
+## [[164]]
+## NULL
+## 
+## [[165]]
+## NULL
+## 
+## [[166]]
+## NULL
+## 
+## [[167]]
+## NULL
+## 
+## [[168]]
+## NULL
+## 
+## [[169]]
+## NULL
+## 
+## [[170]]
+## NULL
+## 
+## [[171]]
+## NULL
+## 
+## [[172]]
+## NULL
+## 
+## [[173]]
+## NULL
+## 
+## [[174]]
+## NULL
+## 
+## [[175]]
+## NULL
+## 
+## [[176]]
+## NULL
+## 
+## [[177]]
+## NULL
+## 
+## [[178]]
+## NULL
+## 
+## [[179]]
+## NULL
+## 
+## [[180]]
+## NULL
+## 
+## [[181]]
+## NULL
+## 
+## [[182]]
+## NULL
+## 
+## [[183]]
+## NULL
+## 
+## [[184]]
+## NULL
+## 
+## [[185]]
+## NULL
+## 
+## [[186]]
+## NULL
+## 
+## [[187]]
+## NULL
+## 
+## [[188]]
+## NULL
+## 
+## [[189]]
+## NULL
+## 
+## [[190]]
+## NULL
+## 
+## [[191]]
+## NULL
+## 
+## [[192]]
+## NULL
+## 
+## [[193]]
+## NULL
+## 
+## [[194]]
+## NULL
+## 
+## [[195]]
+## NULL
+## 
+## [[196]]
+## NULL</code></pre>
+<pre class="r"><code># Try different layouts (e.g. yFiles organic layout) if nodes are overlapping too much 
+# Cytoscape &gt; Layout menu!
+
+exportImage(paste0(out.folder,&#39;selected-pathways-PPI-with-drugs.png&#39;), type=&#39;PNG&#39;, zoom=500) #.png; use zoom or width args to increase size/resolution</code></pre>
+<pre><code>##                                                                                            file 
+## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/selected-pathways-PPI-with-drugs.png&quot;</code></pre>
+<pre class="r"><code># ==================================================================
+# SAVING CYTOSCAPE SESSION
+# ==================================================================
+
+saveSession(paste0(out.folder,&#39;selected-pathways-PPI.cys&#39;))
+
+## OPTIONAL - FILTER network to only include drugs + targets
+
+selectNodes(my.drugs)</code></pre>
+<pre><code>## $nodes
+##   [1] 570359 570872 569849 570353 570866 569843 570887 569867 570371 570905 569882 570383 570896 569873 570410 569900
+##  [17] 570926 569888 570914 570404 569894 570935 569912 570428 569918 570416 569927 570434 570950 569945 570458 570959
+##  [33] 570449 569939 569450 570986 569963 569951 570980 569957 569975 571004 570485 570998 571016 570506 570497 569987
+##  [49] 571031 570011 570524 570512 570005 570518 570536 570026 569516 569504 571040 570530 570020 569510 571046 570551
+##  [65] 569528 571067 570044 569534 570545 569522 571061 570038 571079 570056 569546 570572 570062 571073 570563 569540
+##  [81] 570071 570584 569564 570077 570590 569552 570578 569558 570599 569579 570605 569570 571109 569591 570104 570620
+##  [97] 569597 570110 570095 569585 570611 571124 570632 569609 571145 570125 570638 569603 571139 570116 571160 569627
+## [113] 569615 571154 570131 570644 569621 569639 571181 570158 570143 569633 570659 570149 570170 569660 571196 569648
+## [129] 570164 570677 571190 569654 570185 569675 570701 569666 570179 570692 569687 570716 569693 570191 569681 570197
+## [145] 570710 570728 569708 570221 570734 570722 569699 570212 570743 569720 570236 569726 569714 570230 569735 570248
+## [161] 570254 570242 570758 570776 570266 569756 569744 570770 570260 569750 569768 570281 569774 570785 569762 570296
+## [177] 569786 570812 570806 570824 569804 570830 569792 570818 569798 570329 570842 569822 569810 570323 570857 569834
+## [193] 570347 570338 570851 569828
+## 
+## $edges
+## list()</code></pre>
+<pre class="r"><code>selectFirstNeighbors()</code></pre>
+<pre><code>## $nodes
+##   [1] 570359 570872 569849 536571 535536 570353 536561 570866 569843 534516 570887 569867 536576 570371 534531 536581
+##  [17] 570905 569882 536606 570383 536591 570896 569873 536081 570410 536106 569900 535596 536621 570926 569888 534561
+##  [33] 570914 535586 570404 569894 534566 570935 536631 569912 536121 534586 535611 570428 569918 570416 535601 535091
+##  [49] 569927 534601 536651 534606 535616 570434 536131 535621 570950 569945 570458 570959 570449 569939 534611 536681
+##  [65] 570986 569450 569963 569951 536161 534626 535651 570980 536676 569957 569975 571004 536176 534641 536691 535156
+##  [81] 570485 570998 534646 536711 571016 570506 536191 534656 570497 569987 571031 570011 570524 570512 535186 534676
+##  [97] 570005 570518 570536 570026 534186 569516 571040 569504 570530 570020 571046 569510 570551 569528 535736 571067
+## [113] 570044 535741 569534 570545 536241 569522 571061 570038 571079 535751 570056 569546 536266 534731 570572 570062
+## [129] 571073 535746 570563 569540 535236 534726 570071 570584 536281 535771 569564 570077 570590 536286 536271 569552
+## [145] 570578 536276 569558 570599 569579 570605 534766 534751 569570 536291 571109 569591 570104 536826 570620 569597
+## [161] 570110 535806 570095 534256 536816 569585 570611 571124 570632 535816 569609 571145 570125 570638 571139 569603
+## [177] 535811 570116 535301 535831 571160 535321 569627 535836 535326 569615 571154 570131 570644 569621 569639 571181
+## [193] 570158 570143 569633 570659 535331 536356 570149 535846 570170 569660 571196 569648 570164 570677 569654 571190
+## [209] 570185 569675 570701 569666 570179 570692 569687 535386 570716 534876 569693 570191 534351 569681 535891 570197
+## [225] 535381 570710 570728 569708 535916 570221 570734 570722 569699 570212 535396 570743 569720 536441 570236 569726
+## [241] 569714 534386 570230 569735 570248 570254 534926 534911 535936 570242 570758 570776 570266 569756 534941 535966
+## [257] 535951 569744 534416 570770 570260 569750 569768 570281 535466 569774 570785 569762 536486 570296 535481 569786
+## [273] 536506 570812 535471 535986 570806 570824 569804 535501 570830 569792 570818 534466 535491 534981 569798 536006
+## [289] 570329 570842 534491 535516 569822 535006 534991 569810 535506 570323 536021 570857 536041 569834 570347 536556
+## [305] 534496 570338 536546 570851 569828 536036
+## 
+## $edges
+## list()</code></pre>
+<pre class="r"><code>selected &lt;- getSelectedNodes()
+
+createSubnetwork(&quot;selected&quot;, &quot;all&quot;)</code></pre>
+<pre><code>## network 
+##  600263</code></pre>
+<pre class="r"><code>RCy3::layoutNetwork()</code></pre>
 
 
 

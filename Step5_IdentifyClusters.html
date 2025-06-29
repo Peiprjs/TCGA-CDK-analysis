@@ -11,7 +11,7 @@
 
 <meta name="author" content="peipr" />
 
-<meta name="date" content="2025-06-26" />
+<meta name="date" content="2025-06-29" />
 
 <title>Step5_IdentifyClusters.R</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Step5_IdentifyClusters.R</h1>
 <h4 class="author">peipr</h4>
-<h4 class="date">2025-06-26</h4>
+<h4 class="date">2025-06-29</h4>
 
 </div>
 
@@ -379,8 +379,7 @@ RCy3::cytoscapePing()</code></pre>
 <pre><code>## You are connected to Cytoscape!</code></pre>
 <pre class="r"><code># let&#39;s use community clustering to find clusters/modules in the network
 commandsRun(paste0(&#39;cluster glay createGroups=TRUE&#39;))</code></pre>
-<pre><code>## [1] &quot;  Clusters: 3480&quot;    &quot;Average size: 1.272&quot; &quot;Maximum size: 76&quot;    &quot;Minimum size: 1&quot;    
-## [5] &quot;Modularity: 0.929&quot;</code></pre>
+<pre><code>## [1] &quot;  Clusters: 3480&quot;    &quot;Average size: 1.272&quot; &quot;Maximum size: 76&quot;    &quot;Minimum size: 1&quot;     &quot;Modularity: 0.929&quot;</code></pre>
 <pre class="r"><code># ??? Question 14 - answer in document
 
 # ==================================================================
@@ -417,12 +416,12 @@ RCy3::setVisualStyle(&quot;log2FC vis&quot;)</code></pre>
 genes.interest &lt;- genes.full %&gt;% filter_at(vars(GeneName), any_vars(. %in% c(interest_genes)))    
 
 genes.interest</code></pre>
-<pre><code>##        GeneName __glayCluster
-## 427740   CDKN1C          3283
-## 427758   CDKN2A          3283
-## 436191   CDKN2B          2846
-## 437481   CDKN2C          2416
-## 440931   CDKN2D          1266</code></pre>
+<pre><code>##       GeneName __glayCluster
+## 35015   CDKN1C          3283
+## 35033   CDKN2A          3283
+## 43466   CDKN2B          2846
+## 44756   CDKN2C          2416
+## 48206   CDKN2D          1266</code></pre>
 <pre class="r"><code>cluster &lt;- as.integer(interest_cluster)
 nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__glayCluster&#39;, cluster, predicate = &quot;IS&quot;)</code></pre>
 <pre><code>## No edges selected.</code></pre>
@@ -435,7 +434,7 @@ nodes.cluster &lt;- RCy3::createColumnFilter(&#39;__glayCluster&#39;, &#39;__gla
   
 RCy3::createSubnetwork(nodes = nodes.cluster$nodes, nodes.by.col = &quot;shared name&quot;, subnetwork.name = paste0(&quot;PPI-cluster-Interest&quot;))</code></pre>
 <pre><code>## network 
-##  834723</code></pre>
+##  441998</code></pre>
 <pre class="r"><code>exportImage(paste0(out.folder,&#39;cluster.svg&#39;), type=&#39;SVG&#39;, zoom=500)</code></pre>
 <pre><code>##                                                                   file 
 ## &quot;/home/peipr/gits/BBS2061-breast-cancer/scripts/../output/cluster.svg&quot;</code></pre>
@@ -460,8 +459,8 @@ unzip(system.file(&quot;extdata&quot;,&quot;drugbank-5.1.0.xgmml.zip&quot;, pack
 drugbank &lt;- file.path(getwd(), &quot;drugbank-5.1.0.xgmml&quot;)
 
 commandsRun(paste0(&#39;cytargetlinker extend idAttribute=&quot;GeneID&quot; linkSetFiles=&quot;&#39;, drugbank, &#39;&quot;&#39;) )</code></pre>
-<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot;
-## [3] &quot;Added edges: 216&quot;                    &quot;Added nodes: 156&quot;</code></pre>
+<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot; &quot;Added edges: 216&quot;                   
+## [4] &quot;Added nodes: 156&quot;</code></pre>
 <pre class="r"><code>commandsRun(&#39;cytargetlinker applyLayout network=&quot;current&quot;&#39;)
 
 my.drugs &lt;- selectNodes(&quot;drug&quot;, by.col = &quot;CTL.Type&quot;, preserve = FALSE)$nodes #easy way to collect node SUIDs by column value
