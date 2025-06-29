@@ -19,6 +19,7 @@ RCy3::layoutNetwork()
 RCy3::analyzeNetwork(directed=FALSE)
 
 res <- getTableColumns(table="node", columns = c("display name", "GeneID", "CTL.Type", "Indegree", "Outdegree"))
+res
 colnames(res) <- c("Name", "ID", "Type", "NumDrugs", "NumTargets")
 
 exportImage(paste0(out.folder,'cluster-interest-with-drugs-exceptnointeract.svg'), type='SVG', zoom=500) #.png; use zoom or width args to increase size/resolution

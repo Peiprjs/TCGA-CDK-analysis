@@ -50,7 +50,7 @@ if (!"name: CyTargetLinker, version: 4.1.0, status: Installed" %in% RCy3::getIns
 ###############################################################################################################
 
 # /!\ Uncomment setwd line if you're running manually
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 out.folder <- "../output/"
 dir.create(out.folder) 
 
