@@ -1,5 +1,5 @@
 # BBS2061 - 2A - Topic A (Network Biology) 
-[![DOI](https://zenodo.org/badge/1006748923.svg)](https://doi.org/10.5281/zenodo.15767005)
+[![DOI](https://zenodo.org/badge/1006748923.svg)](https://doi.org/10.5281/zenodo.15767005)\
 For the course BBS2061, we were instructed to modify/create a code and run a set of computational analyses, in order to answer a set research question. 
 The project involved groups of 3-4 people, which were given a certain topic regarding the course information/content. 
 This respective project involves 4 individuals; Roca Cugat M.(*i6351071*) ; Sapsai I.(*i6355626*) ; Rijk IR.(*i6342444*) ; Mirensky Roffe DS.(*i6323580*).
