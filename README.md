@@ -1,5 +1,8 @@
 # BBS2061 - 2A - Topic A (Network Biology) 
-[![DOI](https://zenodo.org/badge/1006748923.svg)](https://doi.org/10.5281/zenodo.15767005)\
+
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15769675.svg)](https://doi.org/10.5281/zenodo.15769675)
+
 For the course BBS2061, we were instructed to modify/create a code and run a set of computational analyses, in order to answer a set research question. 
 The project involved groups of 3-4 people, which were given a certain topic regarding the course information/content. 
 This respective project involves 4 individuals; Roca Cugat M.(*i6351071*) ; Sapsai I.(*i6355626*) ; Rijk IR.(*i6342444*) ; Mirensky Roffe DS.(*i6323580*).
@@ -20,7 +23,7 @@ Previously aquired knowledge led to the foundation of a possible hypotehsis, whi
 ### Hypothesis
 > The Cylcin-Dependent Kinase 4/6 Inhibtors will be Downregulated. 
 
-You can find the execution of all the code steps in [https://peiprjs.github.io/BBS2061-breast-cancer/](https://peiprjs.github.io/BBS2061-breast-cancer/)
+You can find the execution of all the code steps in [https://peiprjs.github.io/TCGA-CDK-analysis/](https://peiprjs.github.io/TCGA-CDK-analysis/)
 
 ## References
 [1] Cancer Genome Atlas Network (2012) “Comprehensive molecular portraits of human breast tumours.” Nature, 490(7418):61-70. doi: 10.1038/nature11412
