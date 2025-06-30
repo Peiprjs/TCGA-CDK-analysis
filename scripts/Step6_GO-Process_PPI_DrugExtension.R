@@ -20,7 +20,7 @@ cytoscapePing()
 genes <- res.go@geneSets[go.term]
 
 query <- format_csv(as.data.frame(genes[1]), col_names=F, escape = "double", eol =",")
-commandsRun(paste0('string protein query cutoff=0.9 newNetName="PPI network" query="',query,'" limit=0 species="Homo sapiens"'))
+commandsPOST(paste0('string protein query cutoff=0.99 newNetName="PPI network" query="',query,'" limit=0 species="Homo sapiens"'))
 
 analyzeNetwork()
 RCy3::loadTableData(data=data, data.key.column = "GeneName", table = "node", table.key.column = "query term")

@@ -69,7 +69,7 @@ pvalue.cutoff <- 0.05
 pw.id <- "WP45" # Pathway of interest
 pathways.stepeight <- c("WP_CELL_CYCLE","WP_G1_TO_S_CELL_CYCLE_CONTROL","WP_CHEMOKINE_SIGNALING", "WP_RAS_SIGNALING", "WP_INSULIN_SIGNALING")
 interest_genes <- c('CDKN1A', 'CDKN1B', 'CDKN1C', 'CDKN2A', 'CDKN2B', 'CDKN2C', 'CDKN2D')
-interest_cluster <- "3283" #3297 and 3283
+interest_cluster <- "3297" #3297 and 3283
 go.term <- "GO:0002768"
 
 # Possible pathways of interest:

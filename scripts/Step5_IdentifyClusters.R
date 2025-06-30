@@ -101,7 +101,7 @@ mapply(function(x,y) setNodeLabelBypass(x,y), drug.labels$SUID, drug.labels$CTL.
 # Try different layouts (e.g. yFiles organic layout) if nodes are overlapping too much 
 # Cytoscape > Layout menu!
 
-exportImage(paste0(out.folder,'cluster-interest-with-drugs.svg'), type='SVG', zoom=500) #.png; use zoom or width args to increase size/resolution
+exportImage(paste0(out.folder,cluster,'cluster-interest-with-drugs.svg'), type='SVG', zoom=500) #.png; use zoom or width args to increase size/resolution
 
 # ==================================================================
 # SAVING CYTOSCAPE SESSION
