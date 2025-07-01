@@ -24,6 +24,10 @@ Previously aquired knowledge led to the foundation of a possible hypotehsis, whi
 
 You can find the execution of all the code steps in [https://peiprjs.github.io/TCGA-CDK-analysis/](https://peiprjs.github.io/TCGA-CDK-analysis/)
 
+### Script flowchart
+
+<img src="https://github.com/user-attachments/assets/7b54a3f5-2a3c-4b85-a1f7-578ced1bddb8" height="600" />
+
 ## References
 [1] Cancer Genome Atlas Network (2012) “Comprehensive molecular portraits of human breast tumours.” Nature, 490(7418):61-70. doi: 10.1038/nature11412\
 [2] Robinson MD, McCarthy DJ, Smyth GK (2010). “edgeR: a Bioconductor package for differential expression analysis of digital gene expression data.” Bioinformatics, 26(1), 139-140
