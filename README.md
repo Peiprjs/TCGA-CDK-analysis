@@ -1,4 +1,4 @@
-# BBS2061 - 2A - Topic A (Network Biology) 
+![Script_flowchart](https://github.com/user-attachments/assets/7b54a3f5-2a3c-4b85-a1f7-578ced1bddb8)# BBS2061 - 2A - Topic A (Network Biology) 
 
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15769675.svg)](https://doi.org/10.5281/zenodo.15769675)
@@ -24,6 +24,10 @@ Previously aquired knowledge led to the foundation of a possible hypotehsis, whi
 > The Cylcin-Dependent Kinase 4/6 Inhibtors will be Downregulated. 
 
 You can find the execution of all the code steps in [https://peiprjs.github.io/TCGA-CDK-analysis/](https://peiprjs.github.io/TCGA-CDK-analysis/)
+
+### Script flowchart
+
+![Script_flowchart](https://github.com/user-attachments/assets/4d77708e-a6e9-4382-8502-2bcdb6bc92a0)
 
 ## References
 [1] Cancer Genome Atlas Network (2012) “Comprehensive molecular portraits of human breast tumours.” Nature, 490(7418):61-70. doi: 10.1038/nature11412
