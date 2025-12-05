@@ -11,9 +11,9 @@
 
 <meta name="author" content="peipr" />
 
-<meta name="date" content="2025-06-29" />
+<meta name="date" content="2025-06-30" />
 
-<title>Step7_GO-Process_PPI_DrugExtension.R</title>
+<title>Step6_GO-Process_PPI_DrugExtension.R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,9 +350,9 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Step7_GO-Process_PPI_DrugExtension.R</h1>
+<h1 class="title toc-ignore">Step6_GO-Process_PPI_DrugExtension.R</h1>
 <h4 class="author">peipr</h4>
-<h4 class="date">2025-06-29</h4>
+<h4 class="date">2025-06-30</h4>
 
 </div>
 
@@ -379,23 +379,24 @@ cytoscapePing()</code></pre>
 genes &lt;- res.go@geneSets[go.term]
 
 query &lt;- format_csv(as.data.frame(genes[1]), col_names=F, escape = &quot;double&quot;, eol =&quot;,&quot;)
-commandsRun(paste0(&#39;string protein query cutoff=0.9 newNetName=&quot;PPI network&quot; query=&quot;&#39;,query,&#39;&quot; limit=0 species=&quot;Homo sapiens&quot;&#39;))</code></pre>
-<pre><code>## [1] &quot;Loaded network &#39;STRING network - PPI network - 2&#39; with 324 nodes and 1024 edges&quot;</code></pre>
+commandsPOST(paste0(&#39;string protein query cutoff=0.99 newNetName=&quot;PPI network&quot; query=&quot;&#39;,query,&#39;&quot; limit=0 species=&quot;Homo sapiens&quot;&#39;))</code></pre>
+<pre><code>## SUID 
+##  308</code></pre>
 <pre class="r"><code>analyzeNetwork()</code></pre>
-<pre><code>##                                    networkTitle                                       nodeCount 
-## &quot;STRING network - PPI network - 2 (undirected)&quot;                                           &quot;324&quot; 
-##                                       edgeCount                                     avNeighbors 
-##                                          &quot;1024&quot;                              &quot;9.25925925925926&quot; 
-##                                        diameter                                          radius 
-##                                             &quot;8&quot;                                             &quot;4&quot; 
-##                                           avSpl                                              cc 
-##                            &quot;3.1602928509905253&quot;                             &quot;0.457825253422492&quot; 
-##                                         density                                   heterogeneity 
-##                           &quot;0.04306632213608958&quot;                            &quot;0.9927638188411179&quot; 
-##                                  centralization                                             ncc 
-##                            &quot;0.2053466637687459&quot;                                            &quot;94&quot; 
-##                                            time 
-##                                          &quot;0.01&quot;</code></pre>
+<pre><code>##                                networkTitle                                   nodeCount 
+## &quot;STRING network - PPI network (undirected)&quot;                                       &quot;324&quot; 
+##                                   edgeCount                                 avNeighbors 
+##                                       &quot;340&quot;                        &quot;4.5174825174825175&quot; 
+##                                    diameter                                      radius 
+##                                        &quot;12&quot;                                         &quot;6&quot; 
+##                                       avSpl                                          cc 
+##                         &quot;4.276371515808136&quot;                       &quot;0.36543119472463637&quot; 
+##                                     density                               heterogeneity 
+##                       &quot;0.03181325716536984&quot;                         &quot;0.901880488475771&quot; 
+##                              centralization                                         ncc 
+##                       &quot;0.13200479472580162&quot;                                       &quot;171&quot; 
+##                                        time 
+##                                     &quot;0.105&quot;</code></pre>
 <pre class="r"><code>RCy3::loadTableData(data=data, data.key.column = &quot;GeneName&quot;, table = &quot;node&quot;, table.key.column = &quot;query term&quot;)</code></pre>
 <pre><code>## [1] &quot;Success: Data loaded in defaultnode table&quot;</code></pre>
 <pre class="r"><code>RCy3::createVisualStyle(&quot;log2FC vis&quot;)
@@ -424,8 +425,8 @@ unzip(system.file(&quot;extdata&quot;,&quot;drugbank-5.1.0.xgmml.zip&quot;, pack
 drugbank &lt;- file.path(getwd(), &quot;drugbank-5.1.0.xgmml&quot;)
 
 commandsRun(paste0(&#39;cytargetlinker extend idAttribute=&quot;GeneID&quot; linkSetFiles=&quot;&#39;, drugbank, &#39;&quot;&#39;) )</code></pre>
-<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot; &quot;Added edges: 260&quot;                   
-## [4] &quot;Added nodes: 136&quot;</code></pre>
+<pre><code>## [1] &quot;Extension step: 1&quot;                   &quot;Linkset: DrugBank_v5.1.0 (approved)&quot;
+## [3] &quot;Added edges: 260&quot;                    &quot;Added nodes: 136&quot;</code></pre>
 <pre class="r"><code>commandsRun(&#39;cytargetlinker applyLayout network=&quot;current&quot;&#39;)
 
 my.drugs &lt;- selectNodes(&quot;drug&quot;, by.col = &quot;CTL.Type&quot;, preserve = FALSE)$nodes #easy way to collect node SUIDs by column value
@@ -861,33 +862,33 @@ saveSession(paste0(out.folder,&#39;breast-cancer-GO-PPI.cys&#39;))
 
 selectNodes(my.drugs)</code></pre>
 <pre><code>## $nodes
-##   [1] 471797 472307 472049 471791 472061 471803 472313 472568 472325 472067 471809 471821 472331 472073 471815 472583
-##  [17] 471830 472085 472079 472094 471581 471836 471575 472343 472358 472613 472100 471587 471842 472622 471854 472106
-##  [33] 471593 471848 472118 471605 472112 471599 472124 471611 472379 472631 472646 471878 471620 472130 472385 471872
-##  [49] 472142 472397 471884 471626 472136 472391 472403 471632 472412 471644 472154 471896 472166 471650 471905 472430
-##  [65] 472172 471659 472682 472424 471911 472181 471668 471923 472700 472187 471674 472442 471686 472451 471938 472706
-##  [81] 471680 471950 472202 472457 471944 472469 471701 472721 472208 472463 471695 472733 471707 472475 472217 472727
-##  [97] 471959 471713 472223 471980 472235 472490 471722 472745 472502 471734 471986 472241 471728 472253 472508 471740
-## [113] 471995 472262 471749 472514 472526 472013 471755 472520 472277 472019 471761 472271 471773 472283 472025 472535
-## [129] 471767 472550 471782 472037 471521 472031 472556 472298
+##   [1]  9200  9971  9464  9722  9980  9212  9473  9218  9734  9479  9992 10250  9227  9740  9998  9491
+##  [17]  9236  9749  9242 10010  9755 10268  9248 10274  9506 10019  9254  9512 10025  9770  9518 10031
+##  [33]  9263  9776 10289  9269 10037  9527 10295  9785  9275 10043 10301  9791  9281 10313  9290 10058
+##  [49]  9803  9548  9296  9809  9554  9302 10070  9563 10076  9308  9821 10082  9317  9830 10088  9323
+##  [65]  9581 10094  9839  9329  9587  9845  9335 10103  9593  9851  9341  9599  9089  9605 10118  9350
+##  [81]  9866 10124  9359  9617  9875  9365 10136  9881  9371  9629  9377  9635  9893  9383 10151  9641
+##  [97]  9899  9389  9647  9653  9398  9911  9143  9404  9149  9662  9410  9155  9668 10181  9926  9416
+## [113]  9161  9674 10190  9422  9167  9680  9173  9686 10199  9947  9179  9692  9440  9953  9698  9188
+## [129]  9446 10214  9959  9704  9194  9452  9965  9710
 ## 
 ## $edges
 ## list()</code></pre>
 <pre class="r"><code>selectFirstNeighbors()</code></pre>
 <pre><code>## $nodes
-##   [1] 463349 472049 463344 472061 463354 472568 472067 463359 462859 472073 472583 472085 462869 462864 472079 472094
-##  [17] 471581 463389 471575 472613 472100 471587 463394 462369 472622 472106 471593 462889 472118 463414 471605 472112
-##  [33] 471599 472124 471611 463419 472631 472646 471620 472130 472142 462924 471626 463434 472136 462929 471632 462429
-##  [49] 471644 472154 463449 472166 471650 463469 472172 462444 471659 472682 472181 471668 463474 462449 472700 472187
-##  [65] 471674 461944 471686 463494 472706 471680 462464 472202 471701 462484 472721 472208 471695 472733 471707 461979
-##  [81] 463514 472217 472727 471713 463009 472223 463519 472235 471722 472745 463529 471734 463029 472241 471728 461999
-##  [97] 472253 463549 471740 463034 472262 471749 471755 463049 462024 472277 471761 472271 471773 472283 471767 471782
-## [113] 472298 471797 472307 471791 462589 471803 462074 472313 462584 472325 462594 471809 471821 472331 471815 462599
-## [129] 471830 463124 463134 471836 472343 472358 463139 471842 462624 471854 471848 472379 463159 471878 472385 471872
-## [145] 472397 471884 463179 472391 472403 462674 462174 472412 462684 463194 471896 471905 472430 463209 472424 462184
-## [161] 471911 462709 471923 462704 472442 462214 472451 471938 471950 462734 472457 471944 463254 472469 462229 472463
-## [177] 472475 471959 463269 463264 471980 472490 472502 462774 463284 471986 463279 463294 472508 471995 462779 463289
-## [193] 472514 472526 472013 472520 472019 472025 462809 472535 472550 472037 462309 471521 463329 472031 472556
+##   [1]  9200  5110  9722  9212  9218  9734 10250  9227  9740  9236  9749  9242  9755 10268  5660  9248
+##  [17] 10274  4645  9254  9770  9263  9776 10289  9269  5685 10295  9785  9275 10301  9791  9281  5700
+##  [33] 10313  5705  9290  9803  4685  9296  9809  5715  5205  9302  5210  9308  9821  5215  5730  9317
+##  [49]  9830  9323  9839  9329  9845  9335  9851  5755  9341  5760  9350  9866  9359  5775  9875  5780
+##  [65]  9365  4760  9881  5785  9371  5275  5790  9377  9893  9383  9899  4780  9389  5805  9398  4790
+##  [81]  9911  5305  9404  5820  5825  9410  9926  9416  4810  9422  5840  4305  9947  5855  9440  9953
+##  [97]  4835  9446  9959  9452  9965  5360  9971  5875  4855  9464  5880  5370  9980  5375  9473  9479
+## [113]  9992  5385  5900  4365  9998  9491 10010  4380  5405  9506 10019  9512 10025  4905  4395  9518
+## [129]  4910 10031 10037  4405  9527 10043  4925  4415  4420 10058  9548  5455  9554  5460 10070  5465
+## [145]  9563 10076 10082  5475 10088  5480  9581  5485 10094  9587  4470 10103  5495  9593  4475  9599
+## [161]  9089  9605 10118 10124  9617  5010  4500 10136  9629  5535  9635  5540 10151  9641  4525  9647
+## [177]  9653  9143  9149  5565  9662  9155  9668 10181  9161  9674 10190  5070  9167  9680  9173  4565
+## [193]  9686 10199  9179  9692  5600  9698  9188  4580  5605 10214  9704  4585  9194  5100  9710
 ## 
 ## $edges
 ## list()</code></pre>
@@ -895,7 +896,7 @@ selectNodes(my.drugs)</code></pre>
 
 createSubnetwork(&quot;selected&quot;, &quot;all&quot;)</code></pre>
 <pre><code>## network 
-##  505460</code></pre>
+##   11122</code></pre>
 
 
 
